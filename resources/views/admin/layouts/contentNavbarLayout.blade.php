@@ -13,6 +13,7 @@ $isFlex = $isFlex ?? false;
 $isFooter = $isFooter ?? true;
 $customizerHidden = $customizerHidden ?? '';
 
+
 /* HTML Classes */
 $navbarDetached = 'navbar-detached';
 $menuFixed = isset($configData['menuFixed']) ? $configData['menuFixed'] : '';
@@ -87,32 +88,6 @@ $container = ($container ?? 'container-xxl');
     <!-- / Layout wrapper -->
 </div>
 
-<!-- SweetAlert 2 -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-<script>
-    // GLOBAL SWEET ALERT FLASH (success / error)
-    @if (session('success'))
-        Swal.fire({
-            icon: 'success',
-            title: 'Berhasil!',
-            text: "{{ session('success') }}",
-            timer: 1800,
-            showConfirmButton: false,
-            backdrop: false // <-- hilangkan overlay
-        });
-    @endif
-
-    @if (session('error'))
-        Swal.fire({
-            icon: 'error',
-            title: 'Gagal!',
-            text: "{{ session('error') }}",
-            backdrop: false // <-- hilangkan overlay
-        });
-    @endif
-</script>
-
-
+@include('components.swal')
 
 @endsection

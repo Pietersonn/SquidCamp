@@ -146,8 +146,7 @@
     </div>
 </div>
 
-{{-- Admin Scripts --}}
-@include('admin.layouts.sections.scripts')
+@include('components.swal')
 
 </body>
 </html>

@@ -18,7 +18,7 @@ class UserSeeder extends Seeder
         // Password default untuk semua
         $password = Hash::make('password');
 
-        // 1. Admin
+        // 1. Admin (Akan dapat ID: 1)
         User::create([
             'name' => 'Admin SquidCamp',
             'email' => 'admin@squidcamp.com',
@@ -27,7 +27,7 @@ class UserSeeder extends Seeder
             'email_verified_at' => now()
         ]);
 
-        // 2. Mentor
+        // 2. Mentor (Akan dapat ID: 2)
         User::create([
             'name' => 'Mentor Akmal',
             'email' => 'mentor@squidcamp.com',
@@ -36,7 +36,7 @@ class UserSeeder extends Seeder
             'email_verified_at' => now()
         ]);
 
-        // 3. Investor
+        // 3. Investor (Akan dapat ID: 3)
         User::create([
             'name' => 'Investor Dwipa',
             'email' => 'investor@squidcamp.com',
@@ -45,13 +45,10 @@ class UserSeeder extends Seeder
             'email_verified_at' => now()
         ]);
 
-        // 4. User (Main)
-        User::create([
-            'name' => 'User Peserta',
-            'email' => 'user@squidcamp.com',
-            'password' => $password,
+        // 4. Buat 10 Peserta (Akan dapat ID: 4 s/d 13)
+        // Kita gunakan Factory yang sudah ada di folder database/factories
+        User::factory(10)->create([
             'role' => 'user',
-            'email_verified_at' => now()
         ]);
     }
 }

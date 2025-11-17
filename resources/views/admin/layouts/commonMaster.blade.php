@@ -38,6 +38,7 @@
 
   <!-- Include Scripts for customizer, helper, analytics, config -->
   @include('admin/layouts/sections/scriptsIncludes')
+  @yield('styles')
 </head>
 
 <body>
@@ -46,9 +47,12 @@
   <!--/ Layout Content -->
   @yield('scripts')
 
+@stack('scripts')
 
   <!-- Include Scripts -->
   @include('admin/layouts/sections/scripts')
+  @include('components.swal')
+
 </body>
 
 </html>

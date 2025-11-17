@@ -21,6 +21,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',         // <-- TAMBAHKAN INI
+        'google_id',    // <-- TAMBAHKAN INI
+        'avatar',       // <-- TAMBAHKAN INI
     ];
 
     /**
@@ -44,5 +47,31 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    // ========== RELASI V6 ==========
+
+    /**
+     * Relasi untuk MENTOR: Grup mana saja yang dia bimbing
+     */
+    public function mentoredGroups()
+    {
+        return $this->hasMany(Group::class, 'mentor_id');
+    }
+
+    /**
+     * Relasi untuk INVESTOR: Event mana saja dia ditugaskan
+     */
+    public function investedEvents()
+    {
+        return $this->hasMany(EventInvestor::class, 'user_id');
+    }
+
+    /**
+     * Relasi untuk PESERTA: Grup apa yang dia ikuti
+     */
+    public function groupMemberships()
+    {
+        return $this->hasMany(GroupMember::class, 'user_id');
     }
 }

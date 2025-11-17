@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -12,14 +11,15 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // \App\Models\User::factory(10)->create();
-
-        // \App\Models\User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
-
-        // Panggil UserSeeder yang baru kita buat
-        $this->call(UserSeeder::class);
+        // Urutan ini SANGAT PENTING untuk foreign key constraints
+        $this->call([
+            UserSeeder::class,          // 1. Buat user dulu
+            EventSeeder::class,         // 2. Buat event-nya
+            GroupSeeder::class,         // 3. Buat grup & assign mentor
+            EventInvestorSeeder::class, // 4. Assign investor & saldonya
+            GroupMemberSeeder::class,   // 5. Masukkan peserta ke grup
+            SquidChallengeSeeder::class, // 6. Buat soal challenge
+            SquidCaseSeeder::class,     // 7. Buat soal case
+        ]);
     }
 }

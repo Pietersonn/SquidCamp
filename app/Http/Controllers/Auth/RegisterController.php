@@ -8,33 +8,32 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 
-class RegisterController extends Controller // Nama Class diubah
+class RegisterController extends Controller
 {
-  public function index()
-  {
-    $pageConfigs = ['myLayout' => 'blank'];
-    // Lokasi view diubah
-    return view('auth.register', ['pageConfigs' => $pageConfigs]);
-  }
+    public function index()
+    {
+        $pageConfigs = ['myLayout' => 'blank'];
+        return view('auth.register', ['pageConfigs' => $pageConfigs]);
+    }
 
-  public function register(Request $request)
-  {
-      $request->validate([
-          'username' => 'required|string|max:255',
-          'email' => 'required|string|email|max:255|unique:users',
-          'password' => 'required|string|min:8|confirmed',
-      ]);
+    public function register(Request $request)
+    {
+        $request->validate([
+            'username' => 'required|string|max:255',
+            'email'    => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
 
-      $user = User::create([
-          'name' => $request->username,
-          'email' => $request->email,
-          'password' => Hash::make($request->password),
-          'role' => 'user',
-      ]);
+        $user = User::create([
+            'name'     => $request->username,
+            'email'    => $request->email,
+            'password' => Hash::make($request->password),
+            'role'     => 'user',
+        ]);
 
-      Auth::login($user);
+        Auth::login($user);
 
-      // Redirect ke route user main
-      return redirect(route('main.dashboard')); // Diubah
-  }
+        return redirect(route('main.dashboard'))
+            ->with('success', 'Akun berhasil dibuat! Selamat datang.');
+    }
 }

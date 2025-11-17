@@ -36,11 +36,11 @@
         <div>User Management</div>
       </a>
     </li>
-    
+
 
     {{-- EVENT MANAGEMENT --}}
-    <li class="menu-item {{ request()->routeIs('admin.event.index') ? 'active' : '' }}">
-      <a class="menu-link" href="{{ route('admin.event.index') }}">
+    <li class="menu-item {{ request()->routeIs('admin.events.index') ? 'active' : '' }}">
+      <a class="menu-link" href="{{ route('admin.events.index') }}">
         <i class="menu-icon tf-icons bx bx-calendar-event"></i>
         <div>Event Management</div>
       </a>

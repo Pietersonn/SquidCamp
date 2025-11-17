@@ -1,107 +1,99 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\GoogleAuthController;
+
+// Admin Controllers
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\EventController;
+
+use App\Http\Controllers\Admin\EventGroupController;
+use App\Http\Controllers\Admin\EventMentorController;
+use App\Http\Controllers\Admin\EventInvestorController;
+use App\Http\Controllers\Admin\EventChallengeController;
+use App\Http\Controllers\Admin\EventCaseController;
+use App\Http\Controllers\Admin\EventGuidelineController;
 
 /*
 |--------------------------------------------------------------------------
-| AUTH ROUTES
+| AUTH
 |--------------------------------------------------------------------------
 */
 
-// Landing otomatis ke login
-Route::get('/', function () {
-    return redirect()->route('login');
+Route::get('/', fn() => redirect()->route('login'));
+
+Route::get('/login', [LoginController::class, 'index'])->name('login')->middleware('guest');
+Route::post('/login', [LoginController::class, 'login'])->middleware('guest');
+
+Route::get('/register', [RegisterController::class, 'index'])->name('register')->middleware('guest');
+Route::post('/register', [RegisterController::class, 'register'])->middleware('guest');
+
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
+
+// Google Auth
+Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect'])->name('auth.google.redirect');
+Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
+
+
+/*
+|--------------------------------------------------------------------------
+| ADMIN
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix('admin')->as('admin.')->middleware(['auth'])->group(function () {
+
+    Route::get('/dashboard', fn() => view('admin.index'))->name('dashboard');
+
+    // Users
+    Route::resource('/users', UserController::class);
+
+    // Events
+    Route::resource('/events', EventController::class);
+
+    // Kelola Grup
+    Route::resource('/groups', EventGroupController::class)->names('groups');
+
+    Route::resource('/mentors', EventMentorController::class)->names('mentors');
+    Route::resource('/investors', EventInvestorController::class)->names('investors');
+    Route::resource('/challenges', EventChallengeController::class)->names('challenges');
+    Route::resource('/cases', EventCaseController::class)->names('cases');
+    Route::resource('/guidelines', EventGuidelineController::class)->names('guidelines');
+    Route::post('/events/{event}/toggle-active', [EventController::class, 'toggleActive'])->name('events.toggleActive');
 });
 
-// Login
-Route::get('/login', [LoginController::class, 'index'])->name('login');
-Route::post('/login', [LoginController::class, 'login']);
-
-// Register
-Route::get('/register', [RegisterController::class, 'index'])->name('register');
-Route::post('/register', [RegisterController::class, 'register']);
-
-// Logout
-Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 /*
 |--------------------------------------------------------------------------
-| ADMIN ROUTES
+| MENTOR
 |--------------------------------------------------------------------------
 */
 
-Route::prefix('admin')
-    ->as('admin.')
-    ->group(function () {
+Route::prefix('mentor')->as('mentor.')->middleware(['auth'])->group(function () {
+    Route::get('/dashboard', fn() => view('mentor.index'))->name('dashboard');
+});
 
-        // Dashboard
-        Route::get('/dashboard', function () {
-            return view('admin.index');
-        })->name('dashboard');
-
-        // USER MANAGEMENT (CRUD)
-        Route::resource('/users', UserController::class);
-
-        // Event Management
-        Route::get('/events', function () {
-            return view('admin.event.index');
-        })->name('event.index');
-    });
 
 /*
 |--------------------------------------------------------------------------
-| MENTOR ROUTES
+| INVESTOR
 |--------------------------------------------------------------------------
 */
 
-Route::prefix('mentor')
-    ->as('mentor.')
-    ->group(function () {
-        Route::get('/dashboard', function () {
-            return view('mentor.index');
-        })->name('dashboard');
-    });
+Route::prefix('investor')->as('investor.')->middleware(['auth'])->group(function () {
+    Route::get('/dashboard', fn() => view('investor.index'))->name('dashboard');
+});
+
 
 /*
 |--------------------------------------------------------------------------
-| INVESTOR ROUTES
+| USER (MAIN)
 |--------------------------------------------------------------------------
 */
 
-Route::prefix('investor')
-    ->as('investor.')
-    ->group(function () {
-        Route::get('/dashboard', function () {
-            return view('investor.index');
-        })->name('dashboard');
-    });
-
-/*
-|--------------------------------------------------------------------------
-| MAIN USER ROUTES
-|--------------------------------------------------------------------------
-*/
-
-Route::prefix('main')
-    ->as('main.')
-    ->group(function () {
-        Route::get('/dashboard', function () {
-            return view('main.index');
-        })->name('dashboard');
-    });
-
-/*
-|--------------------------------------------------------------------------
-| GOOGLE AUTH ROUTES
-|--------------------------------------------------------------------------
-*/
-
-Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect'])
-    ->name('auth.google.redirect');
-
-Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])
-    ->name('auth.google.callback');
+Route::prefix('main')->as('main.')->middleware(['auth'])->group(function () {
+    Route::get('/dashboard', fn() => view('main.index'))->name('dashboard');
+});
