@@ -3,63 +3,53 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Event;
+use App\Models\EventGuideline;
+use App\Models\Guideline;
 use Illuminate\Http\Request;
 
 class EventGuidelineController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * TAMPILKAN semua guideline untuk event tertentu
      */
-    public function index()
+    public function index(Event $event)
     {
-        //
+        $selected = $event->guidelines; // dari belongsToMany
+        $all = Guideline::all();       // master guideline
+
+        return view('admin.event_guidelines.index', compact('event', 'selected', 'all'));
     }
 
     /**
-     * Show the form for creating a new resource.
+     * TAMBAH guideline ke event
      */
-    public function create()
+    public function store(Request $request, Event $event)
     {
-        //
+        $request->validate([
+            'guideline_id' => 'required|exists:guidelines,id'
+        ]);
+
+        // Cegah duplikasi
+        if ($event->guidelines()->where('guideline_id', $request->guideline_id)->exists()) {
+            return back()->with('error', 'Guideline sudah terdaftar di event ini.');
+        }
+
+        EventGuideline::create([
+            'event_id' => $event->id,
+            'guideline_id' => $request->guideline_id
+        ]);
+
+        return back()->with('success', 'Guideline berhasil ditambahkan.');
     }
 
     /**
-     * Store a newly created resource in storage.
+     * HAPUS guideline dari event
      */
-    public function store(Request $request)
+    public function destroy(Event $event, EventGuideline $eventGuideline)
     {
-        //
-    }
+        $eventGuideline->delete();
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return back()->with('success', 'Guideline berhasil dihapus dari event.');
     }
 }

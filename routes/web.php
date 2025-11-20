@@ -2,14 +2,16 @@
 
 use Illuminate\Support\Facades\Route;
 
+// AUTH
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\GoogleAuthController;
 
-// Admin Controllers
+// ADMIN
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\EventController;
-
+use App\Http\Controllers\Admin\ChallengeController;
+use App\Http\Controllers\Admin\GuidelineController;
 use App\Http\Controllers\Admin\EventGroupController;
 use App\Http\Controllers\Admin\EventMentorController;
 use App\Http\Controllers\Admin\EventInvestorController;
@@ -17,10 +19,16 @@ use App\Http\Controllers\Admin\EventChallengeController;
 use App\Http\Controllers\Admin\EventCaseController;
 use App\Http\Controllers\Admin\EventGuidelineController;
 
+// ROLE LAIN
+// (Kita bisa tambahkan controller dashboard untuk mereka nanti)
+
 /*
 |--------------------------------------------------------------------------
 | AUTH
 |--------------------------------------------------------------------------
+|
+| Rute untuk login, register, logout, dan Google Auth.
+|
 */
 
 Route::get('/', fn() => redirect()->route('login'));
@@ -42,28 +50,36 @@ Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->
 |--------------------------------------------------------------------------
 | ADMIN
 |--------------------------------------------------------------------------
+|
 */
 
-Route::prefix('admin')->as('admin.')->middleware(['auth'])->group(function () {
+Route::prefix('admin')->as('admin.')->middleware(['auth', 'role:admin'])->group(function () {
 
-    Route::get('/dashboard', fn() => view('admin.index'))->name('dashboard');
+  Route::get('/dashboard', fn() => view('admin.index'))->name('dashboard');
 
-    // Users
-    Route::resource('/users', UserController::class);
+  // MASTER DATA (Global)
+  Route::resource('/challenges', ChallengeController::class);
+  Route::resource('/guidelines', GuidelineController::class);
 
-    // Events
-    Route::resource('/events', EventController::class);
+  // Events
+  Route::resource('/events', EventController::class);
+  Route::resource('/users', UserController::class);
+  Route::post('/events/{event}/toggle-active', [EventController::class, 'toggleActive'])->name('events.toggleActive');
 
-    // Kelola Grup
-    Route::resource('/groups', EventGroupController::class)->names('groups');
+  // EVENT SUBMENU
+  Route::prefix('events/{event}')->as('events.')->group(function () {
+    Route::resource('groups', EventGroupController::class);
+    Route::resource('mentors', EventMentorController::class);
+    Route::resource('investors', EventInvestorController::class);
 
-    Route::resource('/mentors', EventMentorController::class)->names('mentors');
-    Route::resource('/investors', EventInvestorController::class)->names('investors');
-    Route::resource('/challenges', EventChallengeController::class)->names('challenges');
-    Route::resource('/cases', EventCaseController::class)->names('cases');
-    Route::resource('/guidelines', EventGuidelineController::class)->names('guidelines');
-    Route::post('/events/{event}/toggle-active', [EventController::class, 'toggleActive'])->name('events.toggleActive');
+    // PER-EVENT
+    Route::resource('challenges', EventChallengeController::class);
+    Route::resource('guidelines', EventGuidelineController::class);
+
+    Route::resource('cases', EventCaseController::class);
+  });
 });
+
 
 
 /*
@@ -72,8 +88,8 @@ Route::prefix('admin')->as('admin.')->middleware(['auth'])->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::prefix('mentor')->as('mentor.')->middleware(['auth'])->group(function () {
-    Route::get('/dashboard', fn() => view('mentor.index'))->name('dashboard');
+Route::prefix('mentor')->as('mentor.')->middleware(['auth', 'role:mentor'])->group(function () {
+  Route::get('/dashboard', fn() => view('mentor.index'))->name('dashboard');
 });
 
 
@@ -83,8 +99,8 @@ Route::prefix('mentor')->as('mentor.')->middleware(['auth'])->group(function () 
 |--------------------------------------------------------------------------
 */
 
-Route::prefix('investor')->as('investor.')->middleware(['auth'])->group(function () {
-    Route::get('/dashboard', fn() => view('investor.index'))->name('dashboard');
+Route::prefix('investor')->as('investor.')->middleware(['auth', 'role:investor'])->group(function () {
+  Route::get('/dashboard', fn() => view('investor.index'))->name('dashboard');
 });
 
 
@@ -94,6 +110,6 @@ Route::prefix('investor')->as('investor.')->middleware(['auth'])->group(function
 |--------------------------------------------------------------------------
 */
 
-Route::prefix('main')->as('main.')->middleware(['auth'])->group(function () {
-    Route::get('/dashboard', fn() => view('main.index'))->name('dashboard');
+Route::prefix('main')->as('main.')->middleware(['auth', 'role:user'])->group(function () {
+  Route::get('/dashboard', fn() => view('main.index'))->name('dashboard');
 });

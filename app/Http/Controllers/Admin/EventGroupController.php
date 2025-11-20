@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Event; // Import Event
+use App\Models\Group; // Import Group
 use Illuminate\Http\Request;
 
 class EventGroupController extends Controller
@@ -10,9 +12,13 @@ class EventGroupController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Event $event)
     {
-        //
+        // Berdasarkan relasi di Model Event
+        // Kita juga load relasi mentor dan members
+        $groups = $event->groups()->with('mentor', 'members')->get();
+
+        return view('admin.events.groups.index', compact('event', 'groups'));
     }
 
     /**

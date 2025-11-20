@@ -3,63 +3,53 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Event;
+use App\Models\EventChallenge;
+use App\Models\Challenge;
 use Illuminate\Http\Request;
 
 class EventChallengeController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * TAMPILKAN semua challenge untuk event
      */
-    public function index()
+    public function index(Event $event)
     {
-        //
+        $selected = $event->challenges; // dari belongsToMany
+        $all = Challenge::all();       // master challenge
+
+        return view('admin.event_challenges.index', compact('event', 'selected', 'all'));
     }
 
     /**
-     * Show the form for creating a new resource.
+     * TAMBAH challenge ke event
      */
-    public function create()
+    public function store(Request $request, Event $event)
     {
-        //
+        $request->validate([
+            'challenge_id' => 'required|exists:challenges,id'
+        ]);
+
+        // Cek duplikasi
+        if ($event->challenges()->where('challenge_id', $request->challenge_id)->exists()) {
+            return back()->with('error', 'Challenge sudah dipilih untuk event ini.');
+        }
+
+        EventChallenge::create([
+            'event_id' => $event->id,
+            'challenge_id' => $request->challenge_id
+        ]);
+
+        return back()->with('success', 'Challenge berhasil ditambahkan.');
     }
 
     /**
-     * Store a newly created resource in storage.
+     * HAPUS challenge dari event
      */
-    public function store(Request $request)
+    public function destroy(Event $event, EventChallenge $eventChallenge)
     {
-        //
-    }
+        $eventChallenge->delete();
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return back()->with('success', 'Challenge berhasil dihapus dari event.');
     }
 }

@@ -13,7 +13,13 @@ return new class extends Migration
     {
         Schema::create('event_mentors', function (Blueprint $table) {
             $table->id();
+            // Ini adalah pivot table antara event dan user (mentor)
+            $table->foreignId('event_id')->constrained('events')->onDelete('cascade');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->timestamps();
+
+            // 1 mentor hanya bisa 1x per event
+            $table->unique(['event_id', 'user_id']);
         });
     }
 

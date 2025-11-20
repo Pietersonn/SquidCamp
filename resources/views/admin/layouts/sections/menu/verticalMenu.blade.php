@@ -14,11 +14,8 @@
     </a>
   </div>
 
-
-
   <div class="menu-divider mt-0"></div>
 
-  <!-- MENU LIST -->
   <ul class="menu-inner py-1">
 
     {{-- DASHBOARD --}}
@@ -37,12 +34,27 @@
       </a>
     </li>
 
-
     {{-- EVENT MANAGEMENT --}}
-    <li class="menu-item {{ request()->routeIs('admin.events.index') ? 'active' : '' }}">
+    <li class="menu-item {{ request()->routeIs('admin.events.*') ? 'active' : '' }}">
       <a class="menu-link" href="{{ route('admin.events.index') }}">
         <i class="menu-icon tf-icons bx bx-calendar-event"></i>
         <div>Event Management</div>
+      </a>
+    </li>
+
+    {{-- CHALLENGE MANAGEMENT (MASTER) --}}
+    <li class="menu-item {{ request()->routeIs('admin.challenges.*') ? 'active' : '' }}">
+      <a class="menu-link" href="{{ route('admin.challenges.index') }}">
+        <i class="menu-icon tf-icons bx bx-target-lock"></i>
+        <div>Challenge Management</div>
+      </a>
+    </li>
+
+    {{-- GUIDELINE MANAGEMENT (MASTER) --}}
+    <li class="menu-item {{ request()->routeIs('admin.guidelines.*') ? 'active' : '' }}">
+      <a class="menu-link" href="{{ route('admin.guidelines.index') }}">
+        <i class="menu-icon tf-icons bx bx-book"></i>
+        <div>Guideline Management</div>
       </a>
     </li>
 

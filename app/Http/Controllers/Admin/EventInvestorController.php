@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Event; // Import Event
+use App\Models\EventInvestor; // Import model
 use Illuminate\Http\Request;
 
 class EventInvestorController extends Controller
@@ -10,9 +12,13 @@ class EventInvestorController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Event $event)
     {
-        //
+        // Berdasarkan relasi di Model Event
+        // Kita juga load relasi user (investornya)
+        $eventInvestors = $event->eventInvestors()->with('user')->get();
+
+        return view('admin.events.investors.index', compact('event', 'eventInvestors'));
     }
 
     /**

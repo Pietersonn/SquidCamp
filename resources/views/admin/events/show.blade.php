@@ -139,31 +139,43 @@
         @php
           $quickMenus = [
               [
-                  'route' => 'admin.events.edit',
+                  'route' => 'admin.events.edit', // Ini sudah benar
                   'icon' => 'bx-edit-alt',
                   'label' => 'Edit Event',
                   'desc' => 'Ubah detail & timer',
               ],
-              ['route' => 'admin.groups.index', 'icon' => 'bx-group', 'label' => 'Kelola Grup', 'desc' => 'Group'],
+              // PERBAIKAN: Tambahkan 'events.' di depan nama route
               [
-                  'route' => 'admin.mentors.index',
+                  'route' => 'admin.events.groups.index',
+                  'icon' => 'bx-group',
+                  'label' => 'Kelola Grup',
+                  'desc' => 'Group',
+              ],
+              [
+                  'route' => 'admin.events.mentors.index',
                   'icon' => 'bx-user-voice',
                   'label' => 'Mentor',
                   'desc' => 'Kelola Mentor',
               ],
               [
-                  'route' => 'admin.investors.index',
+                  'route' => 'admin.events.investors.index',
                   'icon' => 'bx-dollar',
                   'label' => 'Investor',
                   'desc' => 'Kelola Investor',
               ],
               [
-                  'route' => 'admin.challenges.index',
+                  'route' => 'admin.events.challenges.index',
                   'icon' => 'bx-target-lock',
                   'label' => 'Challenge',
                   'desc' => 'Kelola Challenge',
               ],
-              ['route' => 'admin.cases.index', 'icon' => 'bx-book', 'label' => 'Case', 'desc' => 'Kelola Case'],
+              ['route' => 'admin.events.cases.index', 'icon' => 'bx-book', 'label' => 'Case', 'desc' => 'Kelola Case'],
+              [
+                  'route' => 'admin.events.guidelines.index',
+                  'icon' => 'bx-file-find',
+                  'label' => 'Guidelines',
+                  'desc' => 'Kelola Guidelines',
+              ],
           ];
         @endphp
 
@@ -242,21 +254,21 @@
 @endsection
 
 @push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const countdownEl = document.getElementById('event-countdown');
-    if (!countdownEl) return;
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const countdownEl = document.getElementById('event-countdown');
+      if (!countdownEl) return;
 
-    const endTime = new Date(countdownEl.dataset.countdown).getTime();
+      const endTime = new Date(countdownEl.dataset.countdown).getTime();
 
-    function updateCountdown() {
+      function updateCountdown() {
         const now = new Date().getTime();
         let distance = endTime - now;
 
         if (distance <= 0) {
-            countdownEl.innerHTML = "Waktu Habis!";
-            clearInterval(interval);
-            return;
+          countdownEl.innerHTML = "Waktu Habis!";
+          clearInterval(interval);
+          return;
         }
 
         // Hitung total jam, termasuk hari
@@ -265,11 +277,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
         countdownEl.innerHTML = `${totalHours}h ${minutes}m ${seconds}s`;
-    }
+      }
 
-    updateCountdown();
-    const interval = setInterval(updateCountdown, 1000);
-});
-</script>
+      updateCountdown();
+      const interval = setInterval(updateCountdown, 1000);
+    });
+  </script>
 @endpush
-

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Event; // Import Event
+use App\Models\EventMentor; // Import model
 use Illuminate\Http\Request;
 
 class EventMentorController extends Controller
@@ -10,9 +12,18 @@ class EventMentorController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Event $event)
     {
-        //
+        // Ambil data mentor yang ter-assign ke event ini
+        $eventMentors = $event->eventMentors()->with('user')->get();
+
+        // Cek: Model Event.php Anda BELUM punya relasi 'eventMentors()'.
+        // Silakan tambahkan ini di app/Models/Event.php:
+        // public function eventMentors() {
+        //     return $this->hasMany(EventMentor::class);
+        // }
+
+        return view('admin.events.mentors.index', compact('event', 'eventMentors'));
     }
 
     /**

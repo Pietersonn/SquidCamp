@@ -4,24 +4,29 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
+class CreateEventChallengesTable extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-    public function up(): void
+    public function up()
     {
         Schema::create('event_challenges', function (Blueprint $table) {
             $table->id();
+
+            // Relasi ke event
+            $table->foreignId('event_id')
+                ->constrained('events')
+                ->onDelete('cascade');
+
+            // Relasi ke challenge
+            $table->foreignId('challenge_id')
+                ->constrained('challenges')
+                ->onDelete('cascade');
+
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
+    public function down()
     {
         Schema::dropIfExists('event_challenges');
     }
-};
+}

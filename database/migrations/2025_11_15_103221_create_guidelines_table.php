@@ -11,13 +11,19 @@ return new class extends Migration
    */
   public function up(): void
   {
-    Schema::create('event_guidelines', function (Blueprint $table) {
+    Schema::create('guidelines', function (Blueprint $table) {
       $table->id();
-      $table->foreignId('event_id')->constrained('events')->onDelete('cascade');
-      $table->foreignId('guideline_id')->constrained('guidelines')->onDelete('cascade');
+      $table->string('title');
+      $table->text('description')->nullable();
+      $table->bigInteger('price')->default(0);
+
+      // File PDF
+      $table->string('pdf_path')->nullable(); // contoh: guidelines/guideline1.pdf
+
       $table->timestamps();
     });
   }
+
 
 
   /**
@@ -25,6 +31,6 @@ return new class extends Migration
    */
   public function down(): void
   {
-    Schema::dropIfExists('guidelines'); // Sesuaikan
+    Schema::dropIfExists('guidelines');
   }
 };
