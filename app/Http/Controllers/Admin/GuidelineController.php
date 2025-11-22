@@ -9,94 +9,94 @@ use Illuminate\Support\Facades\Storage;
 
 class GuidelineController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         $guidelines = Guideline::latest()->paginate(10);
-
         return view('admin.guidelines.index', compact('guidelines'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         return view('admin.guidelines.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'nama' => 'required|string|max:255',
-            'deskripsi' => 'nullable|string',
-            'file_pdf' => 'nullable|mimes:pdf|max:2048'
+        $request->validate([
+            'title'       => 'required|string|max:255',
+            'price'       => 'nullable|integer',
+            'description' => 'nullable|string',
+            'file_pdf'    => 'nullable|mimes:pdf|max:5120' // Max 5MB
         ]);
 
+        $path = null;
+
         if ($request->hasFile('file_pdf')) {
-            $validated['file_pdf'] = $request->file('file_pdf')->store('guidelines', 'public');
+            // Simpan di storage/app/public/guidelines
+            $path = $request->file('file_pdf')->store('guidelines', 'public');
         }
 
-        Guideline::create($validated);
+        Guideline::create([
+            'title'       => $request->title,
+            'price'       => $request->price ?? 0,
+            'description' => $request->description,
+            'file_pdf'    => $path
+        ]);
 
         return redirect()
             ->route('admin.guidelines.index')
             ->with('success', 'Guideline berhasil ditambahkan!');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Guideline $guideline)
     {
         return view('admin.guidelines.edit', compact('guideline'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Guideline $guideline)
     {
-        $validated = $request->validate([
-            'nama' => 'required|string|max:255',
-            'deskripsi' => 'nullable|string',
-            'file_pdf' => 'nullable|mimes:pdf|max:2048'
+        $request->validate([
+            'title'       => 'required|string|max:255',
+            'price'       => 'nullable|integer',
+            'description' => 'nullable|string',
+            'file_pdf'    => 'nullable|mimes:pdf|max:5120'
         ]);
 
-        // Jika upload file baru, hapus file lama
-        if ($request->hasFile('file_pdf')) {
-            if ($guideline->file_pdf && Storage::disk('public')->exists($guideline->file_pdf)) {
-                Storage::disk('public')->delete($guideline->file_pdf);
-            }
+        $path = $guideline->file_pdf;
 
-            $validated['file_pdf'] = $request->file('file_pdf')->store('guidelines', 'public');
+        // Jika upload file baru, hapus file lama & simpan yang baru
+        if ($request->hasFile('file_pdf')) {
+            if ($path && Storage::disk('public')->exists($path)) {
+                Storage::disk('public')->delete($path);
+            }
+            $path = $request->file('file_pdf')->store('guidelines', 'public');
         }
 
-        $guideline->update($validated);
+        $guideline->update([
+            'title'       => $request->title,
+            'price'       => $request->price ?? 0,
+            'description' => $request->description,
+            'file_pdf'    => $path
+        ]);
 
         return redirect()
             ->route('admin.guidelines.index')
             ->with('success', 'Guideline berhasil diperbarui!');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Guideline $guideline)
     {
+        // Hapus file fisik jika ada
         if ($guideline->file_pdf && Storage::disk('public')->exists($guideline->file_pdf)) {
             Storage::disk('public')->delete($guideline->file_pdf);
         }
 
         $guideline->delete();
 
-        return redirect()
-            ->route('admin.guidelines.index')
-            ->with('success', 'Guideline berhasil dihapus!');
+        // Return JSON untuk AJAX SweetAlert di index
+        return response()->json([
+            'success' => true,
+            'message' => 'Guideline berhasil dihapus!'
+        ]);
     }
 }

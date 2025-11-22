@@ -6,31 +6,20 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-  /**
-   * Run the migrations.
-   */
-  public function up(): void
-  {
-    Schema::create('guidelines', function (Blueprint $table) {
-      $table->id();
-      $table->string('title');
-      $table->text('description')->nullable();
-      $table->bigInteger('price')->default(0);
+    public function up(): void
+    {
+        Schema::create('guidelines', function (Blueprint $table) {
+            $table->id();
+            $table->string('title');
+            $table->text('description')->nullable();
+            $table->bigInteger('price')->default(0); // Menyimpan harga angka murni
+            $table->string('file_pdf')->nullable();  // Path file PDF
+            $table->timestamps();
+        });
+    }
 
-      // File PDF
-      $table->string('pdf_path')->nullable(); // contoh: guidelines/guideline1.pdf
-
-      $table->timestamps();
-    });
-  }
-
-
-
-  /**
-   * Reverse the migrations.
-   */
-  public function down(): void
-  {
-    Schema::dropIfExists('guidelines');
-  }
+    public function down(): void
+    {
+        Schema::dropIfExists('guidelines');
+    }
 };

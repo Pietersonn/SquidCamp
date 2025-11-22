@@ -8,66 +8,41 @@
 
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Tambah Guideline</h5>
-                <small class="text-body">Form untuk membuat guideline baru</small>
             </div>
 
             <div class="card-body">
-                <form action="{{ route('admin.guidelines.store') }}" method="POST">
+                {{-- PENTING: Tambahkan enctype untuk upload file --}}
+                <form action="{{ route('admin.guidelines.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
 
-                    {{-- Title --}}
                     <div class="mb-6">
                         <label class="form-label" for="gl-title">Judul</label>
-                        <input
-                            id="gl-title"
-                            name="title"
-                            type="text"
-                            class="form-control @error('title') is-invalid @enderror"
-                            value="{{ old('title') }}"
-                            placeholder="Masukkan judul guideline"
-                            required>
-
-                        @error('title')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+                        <input id="gl-title" name="title" type="text" class="form-control" value="{{ old('title') }}" placeholder="Judul guideline" required>
                     </div>
 
-                    {{-- Description --}}
-                    <div class="mb-6">
-                        <label class="form-label" for="gl-desc">Deskripsi</label>
-                        <textarea
-                            id="gl-desc"
-                            name="description"
-                            class="form-control @error('description') is-invalid @enderror"
-                            rows="4"
-                            placeholder="Masukkan deskripsi guideline...">{{ old('description') }}</textarea>
-
-                        @error('description')
-                            <small class="text-danger">{{ $message }}</small>
-                        @enderror
-                    </div>
-
-                    {{-- Price --}}
                     <div class="mb-6">
                         <label class="form-label" for="gl-price">Harga</label>
                         <div class="input-group input-group-merge">
-                            <span class="input-group-text">Rp</span>
-                            <input
-                                id="gl-price"
-                                name="price"
-                                type="number"
-                                class="form-control @error('price') is-invalid @enderror"
-                                value="{{ old('price') }}"
-                                placeholder="Masukkan harga (boleh kosong)">
+                            <span class="input-group-text">$</span>
+                            <input id="gl-price" name="price" type="number" class="form-control" value="{{ old('price') }}" placeholder="Contoh: 50000">
                         </div>
+                        <div class="form-text">Masukkan angka saja (misal: 50000 untuk $50,000)</div>
+                    </div>
 
-                        @error('price')
-                            <small class="text-danger">{{ $message }}</small>
-                        @enderror
+                    {{-- Input File PDF --}}
+                    <div class="mb-6">
+                        <label class="form-label" for="file_pdf">Upload PDF</label>
+                        <input type="file" name="file_pdf" id="file_pdf" class="form-control" accept=".pdf">
+                        <div class="form-text">Format: PDF, Maks: 5MB</div>
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="form-label" for="gl-desc">Deskripsi</label>
+                        <textarea id="gl-desc" name="description" class="form-control" rows="4">{{ old('description') }}</textarea>
                     </div>
 
                     <button type="submit" class="btn btn-primary mt-3">
-                        <i class="bx bx-plus me-1"></i> Buat Guideline
+                        <i class="bx bx-save me-1"></i> Simpan
                     </button>
 
                 </form>

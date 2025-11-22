@@ -4,6 +4,11 @@
 @section('content')
 <div class="container-xxl">
 
+    {{-- Alert Feedback --}}
+    @if(session('success'))
+        <div class="alert alert-success mb-3">{{ session('success') }}</div>
+    @endif
+
     <div class="card">
 
         <div class="card-header d-flex justify-content-between align-items-center">
@@ -14,12 +19,12 @@
         </div>
 
         <div class="table-responsive text-nowrap">
-            <table class="table">
+            <table class="table table-hover">
                 <thead>
                     <tr>
                         <th>#</th>
                         <th>Nama</th>
-                        <th>Kategori</th>
+                        <th>Reward / Kategori</th>
                         <th>PDF</th>
                         <th>Aksi</th>
                     </tr>
@@ -28,28 +33,35 @@
                     @foreach ($challenges as $c)
                     <tr id="row-{{ $c->id }}">
                         <td>{{ $loop->iteration }}</td>
-                        <td>{{ $c->nama }}</td>
-                        <td>{{ $c->kategori }}</td>
+                        <td><strong>{{ $c->nama }}</strong></td>
+
+                        {{-- FORMAT DOLAR --}}
+                        <td>
+                            <span class="badge bg-label-success">
+                                ${{ number_format($c->kategori, 0, ',', ',') }}
+                            </span>
+                        </td>
+
                         <td>
                             @if ($c->file_pdf)
                                 <a href="{{ asset('storage/'.$c->file_pdf) }}"
                                    target="_blank"
-                                   class="btn btn-sm btn-info">
-                                    <i class="bx bx-file"></i> Lihat PDF
+                                   class="btn btn-sm btn-icon btn-outline-info" title="Lihat PDF">
+                                    <i class="bx bx-file"></i>
                                 </a>
                             @else
-                                <span class="text-muted">Tidak ada</span>
+                                <span class="text-muted">-</span>
                             @endif
                         </td>
                         <td>
                             <a href="{{ route('admin.challenges.edit', $c->id) }}" class="btn btn-sm btn-warning">
-                                Edit
+                                <i class="bx bx-edit-alt"></i>
                             </a>
 
                             <button class="btn btn-sm btn-danger btn-delete"
                                     data-id="{{ $c->id }}"
                                     data-url="{{ route('admin.challenges.destroy', $c->id) }}">
-                                Hapus
+                                <i class="bx bx-trash"></i>
                             </button>
                         </td>
                     </tr>
@@ -75,6 +87,7 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.btn-delete').forEach(btn => {
         btn.addEventListener('click', function () {
             const id = this.dataset.id;
+            const url = this.dataset.url;
 
             Swal.fire({
                 title: 'Hapus challenge?',
@@ -82,10 +95,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'Ya, hapus',
-                cancelButtonText: 'Batal'
+                cancelButtonText: 'Batal',
+                customClass: {
+                    confirmButton: 'btn btn-danger me-3',
+                    cancelButton: 'btn btn-secondary'
+                },
+                buttonsStyling: false
             }).then(result => {
                 if (result.isConfirmed) {
-                    fetch(this.dataset.url, {
+                    fetch(url, {
                         method: 'DELETE',
                         headers: {
                             'X-CSRF-TOKEN': csrf,
@@ -97,7 +115,13 @@ document.addEventListener('DOMContentLoaded', function () {
                         if (data.success) {
                             document.getElementById('row-' + id).remove();
                             Swal.fire('Terhapus!', data.message, 'success');
+                        } else {
+                             Swal.fire('Gagal!', 'Terjadi kesalahan saat menghapus.', 'error');
                         }
+                    })
+                    .catch(err => {
+                         console.error(err);
+                         Swal.fire('Error!', 'Terjadi kesalahan jaringan.', 'error');
                     });
                 }
             });
