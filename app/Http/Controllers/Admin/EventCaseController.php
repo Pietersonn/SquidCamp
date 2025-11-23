@@ -3,67 +3,64 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Event; 
-use App\Models\SquidCase;
+use App\Models\Event;
+use App\Models\Cases;
 use Illuminate\Http\Request;
 
 class EventCaseController extends Controller
 {
-  /**
-   * Display a listing of the resource.
-   */
-  public function index(Event $event)
-  {
-    // Berdasarkan relasi di Model Event, kita ambil 1 case
-    $squidCase = $event->squidCase; //
-    return view('admin.events.cases.index', compact('event', 'squidCase'));
-  }
+    public function index(Event $event)
+    {
+        $selected_cases = $event->cases;
+        return view('admin.events.cases.index', compact('event', 'selected_cases'));
+    }
 
-  /**
-   * Show the form for creating a new resource.
-   */
-  public function create()
-  {
-    //
-  }
+    public function create(Event $event)
+    {
+        $selected_ids = $event->cases->pluck('id')->toArray();
+        $cases = Cases::whereNotIn('id', $selected_ids)->get();
 
-  /**
-   * Store a newly created resource in storage.
-   */
-  public function store(Request $request)
-  {
-    //
-  }
+        return view('admin.events.cases.create', compact('event', 'cases'));
+    }
 
-  /**
-   * Display the specified resource.
-   */
-  public function show(string $id)
-  {
-    //
-  }
+    public function store(Request $request, Event $event)
+    {
+        $request->validate([
+            'case_ids' => 'required|array',
+            'case_ids.*' => 'exists:cases,id'
+        ]);
 
-  /**
-   * Show the form for editing the specified resource.
-   */
-  public function edit(string $id)
-  {
-    //
-  }
+        $event->cases()->syncWithoutDetaching($request->case_ids);
+        $count = count($request->case_ids);
 
-  /**
-   * Update the specified resource in storage.
-   */
-  public function update(Request $request, string $id)
-  {
-    //
-  }
+        return redirect()->route('admin.events.cases.index', $event->id)
+            ->with('success', "$count Case berhasil ditambahkan ke Event.");
+    }
 
-  /**
-   * Remove the specified resource from storage.
-   */
-  public function destroy(string $id)
-  {
-    //
-  }
+    public function edit(Event $event, Cases $case)
+    {
+        $selected_ids = $event->cases->pluck('id')->toArray();
+        $available_cases = Cases::whereNotIn('id', array_diff($selected_ids, [$case->id]))->get();
+
+        return view('admin.events.cases.edit', compact('event', 'case', 'available_cases'));
+    }
+
+    public function update(Request $request, Event $event, Cases $case)
+    {
+        $request->validate([
+            'new_case_id' => 'required|exists:cases,id'
+        ]);
+
+        $event->cases()->detach($case->id);
+        $event->cases()->syncWithoutDetaching([$request->new_case_id]);
+
+        return redirect()->route('admin.events.cases.index', $event->id)
+            ->with('success', 'Case berhasil diperbarui.');
+    }
+
+    public function destroy(Event $event, Cases $case)
+    {
+        $event->cases()->detach($case->id);
+        return back()->with('success', 'Case berhasil dihapus dari event.');
+    }
 }

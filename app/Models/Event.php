@@ -68,4 +68,9 @@ class Event extends Model
     {
         return $this->hasOne(SquidCase::class);
     }
+
+    public function cases()
+    {
+        return $this->belongsToMany(Cases::class, 'event_cases', 'event_id', 'case_id')->withTimestamps();
+    }
 }

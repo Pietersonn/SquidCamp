@@ -58,6 +58,14 @@
       </a>
     </li>
 
+    {{-- CASE MANAGEMENT (MASTER) --}}
+    <li class="menu-item {{ request()->routeIs('admin.cases.*') ? 'active' : '' }}">
+      <a class="menu-link" href="{{ route('admin.cases.index') }}">
+        <i class="menu-icon tf-icons bx bx-briefcase"></i>
+        <div>Case Management</div>
+      </a>
+    </li>
+
   </ul>
 
 </aside>

@@ -11,14 +11,15 @@ use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\EventController;
-use App\Http\Controllers\Admin\ChallengeController;     // Master
-use App\Http\Controllers\Admin\GuidelineController;     // Master
+use App\Http\Controllers\Admin\ChallengeController;
+use App\Http\Controllers\Admin\GuidelineController;
+use App\Http\Controllers\Admin\CaseController; // Master Case
 use App\Http\Controllers\Admin\EventGroupController;
 use App\Http\Controllers\Admin\EventMentorController;
 use App\Http\Controllers\Admin\EventInvestorController;
-use App\Http\Controllers\Admin\EventChallengeController; // Pivot
-use App\Http\Controllers\Admin\EventCaseController;
-use App\Http\Controllers\Admin\EventGuidelineController; // Pivot
+use App\Http\Controllers\Admin\EventChallengeController;
+use App\Http\Controllers\Admin\EventCaseController; // Event Case
+use App\Http\Controllers\Admin\EventGuidelineController;
 
 // ROLE LAIN
 use App\Http\Controllers\Mentor\MentorDashboardController;
@@ -57,9 +58,10 @@ Route::prefix('admin')->as('admin.')->middleware(['auth', 'role:admin'])->group(
     // Dashboard
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
-    // MASTER DATA (Global)
+    // MASTER DATA
     Route::resource('/challenges', ChallengeController::class);
     Route::resource('/guidelines', GuidelineController::class);
+    Route::resource('/cases', CaseController::class); // Master Data Cases
 
     // MANAJEMEN USERS
     Route::resource('/users', UserController::class);
@@ -68,7 +70,7 @@ Route::prefix('admin')->as('admin.')->middleware(['auth', 'role:admin'])->group(
     Route::resource('/events', EventController::class);
     Route::post('/events/{event}/toggle-active', [EventController::class, 'toggleActive'])->name('events.toggleActive');
 
-    // EVENT SUB-MENU (Nested Resources)
+    // EVENT SUB-MENU
     Route::prefix('events/{event}')->as('events.')->group(function () {
 
         Route::resource('groups', EventGroupController::class);
@@ -76,11 +78,9 @@ Route::prefix('admin')->as('admin.')->middleware(['auth', 'role:admin'])->group(
         Route::resource('investors', EventInvestorController::class);
 
         // PER-EVENT CONFIGURATION
-        // JANGAN pakai ->only() supaya create/edit/update bisa diakses
         Route::resource('challenges', EventChallengeController::class);
         Route::resource('guidelines', EventGuidelineController::class);
-
-        Route::resource('cases', EventCaseController::class);
+        Route::resource('cases', EventCaseController::class); // Event Cases
     });
 
 });
