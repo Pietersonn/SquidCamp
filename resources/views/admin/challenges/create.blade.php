@@ -12,32 +12,34 @@
             </div>
 
             <div class="card-body">
+                {{-- Pastikan Route ini sesuai --}}
                 <form action="{{ route('admin.challenges.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
 
                     <div class="mb-6">
-                        <label class="form-label">Nama</label>
-                        <input type="text" name="nama" class="form-control" required>
+                        <label class="form-label">Nama Challenge</label>
+                        <input type="text" name="nama" class="form-control" required placeholder="Contoh: Red Light Green Light">
                     </div>
 
                     <div class="mb-6">
-                        <label class="form-label">Kategori</label>
+                        <label class="form-label">Reward (Kategori)</label>
                         <select name="kategori" class="form-control" required>
-                            <option value="">Pilih</option>
-                            <option value="300">300</option>
-                            <option value="500">500</option>
-                            <option value="700">700</option>
+                            <option value="">Pilih Reward</option>
+                            {{-- Value angka murni, Label format Dolar --}}
+                            <option value="300000">$300,000</option>
+                            <option value="500000">$500,000</option>
+                            <option value="700000">$700,000</option>
                         </select>
                     </div>
 
                     <div class="mb-6">
-                        <label class="form-label">Upload PDF</label>
-                        <input type="file" name="file_pdf" class="form-control">
+                        <label class="form-label">Upload PDF (Instruksi)</label>
+                        <input type="file" name="file_pdf" class="form-control" accept=".pdf">
                     </div>
 
                     <div class="mb-6">
                         <label class="form-label">Deskripsi</label>
-                        <textarea name="deskripsi" class="form-control" rows="4"></textarea>
+                        <textarea name="deskripsi" class="form-control" rows="4" placeholder="Jelaskan detail challenge..."></textarea>
                     </div>
 
                     <button class="btn btn-primary mt-3">

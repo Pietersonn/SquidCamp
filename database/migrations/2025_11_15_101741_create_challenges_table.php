@@ -11,8 +11,8 @@ class CreateChallengesTable extends Migration
         Schema::create('challenges', function (Blueprint $table) {
             $table->id();
             $table->string('nama');
-            $table->enum('kategori', ['300','500','700']);
-            $table->string('file_pdf')->nullable(); // path file di storage/app/challenges/...
+            $table->bigInteger('kategori');
+            $table->string('file_pdf')->nullable();
             $table->text('deskripsi')->nullable();
             $table->timestamps();
         });
