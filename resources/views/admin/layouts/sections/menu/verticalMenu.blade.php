@@ -1,6 +1,38 @@
+<style>
+    /* --- SQUID CAMP MENU THEME --- */
+    :root {
+        --squid-primary: #00a79d; /* Hijau Teal Utama */
+        --squid-light: #e0f2f1;   /* Hijau Muda Lembut */
+    }
+
+    /* Warna Item saat AKTIF */
+    .bg-menu-theme .menu-inner > .menu-item.active > .menu-link {
+        background-color: var(--squid-light) !important;
+        color: var(--squid-primary) !important;
+    }
+
+    /* Warna Icon saat AKTIF */
+    .bg-menu-theme .menu-inner > .menu-item.active > .menu-link .menu-icon {
+        color: var(--squid-primary) !important;
+    }
+
+    /* Garis Indikator di Kiri saat AKTIF */
+    .bg-menu-theme .menu-inner > .menu-item.active::before {
+        background-color: var(--squid-primary) !important;
+    }
+
+    /* Efek HOVER pada Menu */
+    .bg-menu-theme .menu-inner > .menu-item > .menu-link:hover {
+        background-color: #f0fdfa !important; /* Hijau sangat pudar */
+        color: var(--squid-primary) !important;
+    }
+    .bg-menu-theme .menu-inner > .menu-item > .menu-link:hover .menu-icon {
+        color: var(--squid-primary) !important;
+    }
+</style>
+
 <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
 
-  <!-- BRAND -->
   <div class="app-brand demo" style="border-bottom: 1px solid #ccc; padding-bottom: 10px;">
     <a href="{{ route('admin.dashboard') }}" class="app-brand-link">
       <span class="app-brand-logo demo">

@@ -73,4 +73,9 @@ class Event extends Model
     {
         return $this->belongsToMany(Cases::class, 'event_cases', 'event_id', 'case_id')->withTimestamps();
     }
+
+    public function mentors()
+    {
+        return $this->belongsToMany(User::class, 'event_mentors', 'event_id', 'user_id')->withPivot('id')->withTimestamps();
+    }
 }

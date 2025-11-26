@@ -21,9 +21,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role',         // <-- TAMBAHKAN INI
-        'google_id',    // <-- TAMBAHKAN INI
-        'avatar',       // <-- TAMBAHKAN INI
+        'role',
+        'google_id',
+        'avatar',
     ];
 
     /**
@@ -49,14 +49,23 @@ class User extends Authenticatable
         ];
     }
 
-    // ========== RELASI V6 ==========
+    // ========== RELASI ==========
 
     /**
-     * Relasi untuk MENTOR: Grup mana saja yang dia bimbing
+     * Relasi Groups (Untuk Mentor): Grup yang dibimbing oleh user ini.
+     * Nama method 'groups' disesuaikan dengan panggilan di EventMentorController.
+     */
+    public function groups()
+    {
+        return $this->hasMany(Group::class, 'mentor_id');
+    }
+
+    /**
+     * (Opsional) Alias jika Anda ingin menggunakan nama yang lebih spesifik di tempat lain.
      */
     public function mentoredGroups()
     {
-        return $this->hasMany(Group::class, 'mentor_id');
+        return $this->groups();
     }
 
     /**

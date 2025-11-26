@@ -4,38 +4,88 @@
 
 @section('styles')
 <style>
-    .card-hover-animation {
-        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-        z-index: 1;
+    :root { --squid-primary: #00a79d; }
+
+    .group-card {
+        border: none;
+        border-radius: 16px;
+        background: #fff;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
     }
-    .card-hover-animation:hover {
-        transform: scale(1.03);
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-        z-index: 10;
+
+    .group-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0, 167, 157, 0.15);
     }
-    .member-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
+
+    /* Header Gradient */
+    .group-header {
+        background: linear-gradient(135deg, #00a79d 0%, #48c6ef 100%);
+        padding: 20px;
+        color: white;
+        position: relative;
     }
-    .member-list li {
-        padding: 5px 0;
-        border-bottom: 1px dashed #eee;
+
+    .group-icon-float {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 3.5rem;
+        opacity: 0.15;
+        color: white;
+    }
+
+    /* Info Label */
+    .info-label {
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 700;
+        display: block;
+        margin-bottom: 3px;
+    }
+
+    /* --- CAPTAIN BOX STYLING --- */
+    .captain-box {
+        margin-top: 15px;
+        padding: 12px 15px; /* Padding membuat teks menjorok ke dalam */
+        background-color: #fff;
+        border: 1px dashed #d9dee3; /* Border putus-putus halus */
+        border-radius: 10px;
+        transition: all 0.3s ease;
         display: flex;
         align-items: center;
     }
-    .member-list li:last-child {
-        border-bottom: none;
+
+    /* Efek Hover pada Kartu Utama mempengaruhi Captain Box */
+    .group-card:hover .captain-box {
+        border-color: #ffab00; /* Berubah jadi Emas */
+        border-style: solid;
+        background-color: #fffdf5; /* Background agak kuning tipis */
+        transform: translateX(5px); /* Geser sedikit ke kanan */
     }
-    .member-badge {
-        width: 24px;
-        height: 24px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
+
+    .captain-avatar-ring {
+        border: 2px solid #ffab00;
+        padding: 2px;
         border-radius: 50%;
-        font-size: 0.75rem;
-        margin-right: 8px;
+    }
+
+    /* Tombol */
+    .btn-squid-outline {
+        color: var(--squid-primary);
+        border: 1px solid var(--squid-primary);
+        font-weight: 600;
+    }
+    .btn-squid-outline:hover {
+        background-color: var(--squid-primary);
+        color: white;
     }
 </style>
 @endsection
@@ -43,86 +93,109 @@
 @section('content')
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="fw-bold mb-0">
-        <span class="text-muted fw-light">Event: {{ $event->name }} /</span> Groups
-    </h4>
-    {{-- Jika ada fitur generate group otomatis, tombolnya bisa ditaruh sini --}}
-    {{-- <button class="btn btn-primary"><i class="bx bx-shuffle me-1"></i> Generate Group</button> --}}
+    <div>
+        <h4 class="fw-bold mb-1" style="color: #008f85;"><i class="bx bx-group me-2"></i>Groups</h4>
+        <span class="text-muted">Event: {{ $event->name }}</span>
+    </div>
+    <a href="{{ route('admin.events.groups.create', $event->id) }}" class="btn btn-primary" style="background-color: #00a79d; border:none;">
+        <i class="bx bx-plus me-1"></i> Buat Kelompok
+    </a>
 </div>
 
-@if(session('success'))
-<div class="alert alert-success mb-3">{{ session('success') }}</div>
-@endif
-
-<div class="row">
+<div class="row g-4">
   @forelse ($groups as $group)
-    <div class="col-md-6 col-lg-4 mb-4">
-      <div class="card h-100 card-hover-animation">
+    <div class="col-md-6 col-lg-4">
+      <div class="group-card">
 
-        {{-- Header Card: Nama Kelompok --}}
-        <div class="card-header bg-label-primary d-flex justify-content-between align-items-center py-3">
-            <h5 class="mb-0 text-primary card-title">
-                <i class="bx bx-group me-2"></i> {{ $group->name }}
-            </h5>
-            <span class="badge bg-white text-primary">{{ $group->members->count() }} Anggota</span>
+        {{-- Header Gradient --}}
+        <div class="group-header">
+            <i class="bx bx-group group-icon-float"></i>
+            <h5 class="text-white mb-1 text-truncate fw-bold" title="{{ $group->name }}">{{ $group->name }}</h5>
+            <span class="badge bg-white text-success rounded-pill fw-bold">
+                <i class="bx bx-user me-1"></i> {{ $group->members_count }} Anggota
+            </span>
         </div>
 
-        <div class="card-body mt-3">
-            <h6 class="text-muted small text-uppercase fw-bold mb-3">Daftar Peserta</h6>
+        <div class="card-body d-flex flex-column p-4">
 
-            @if($group->members->isEmpty())
-                <div class="text-center py-3 text-muted">
-                    <small>Belum ada anggota di kelompok ini.</small>
+            {{-- Baris 1: Uang & Mentor --}}
+            <div class="d-flex justify-content-between align-items-start">
+                {{-- Uang --}}
+                <div>
+                    <span class="info-label text-muted">Squid Dollar</span>
+                    <h5 class="mb-0 fw-bold text-success d-flex align-items-center">
+                        <i class="bx bx-dollar-circle me-1"></i>
+                        {{ number_format($group->squid_dollar, 0, ',', '.') }}
+                    </h5>
                 </div>
-            @else
-                <ul class="member-list">
-                    @foreach($group->members as $member)
-                        <li>
-                            {{-- Avatar/Initial (Optional) --}}
-                            <span class="member-badge bg-label-secondary">
-                                {{ substr($member->name, 0, 1) }}
-                            </span>
 
-                            <div>
-                                <span class="fw-semibold text-dark">{{ $member->name }}</span>
-                                @if(!empty($member->is_leader))
-                                    <span class="badge bg-warning ms-1" style="font-size: 0.6rem;">Leader</span>
-                                @endif
-                                <br>
-                                <small class="text-muted" style="font-size: 0.75rem;">{{ $member->email ?? '-' }}</small>
-                            </div>
-                        </li>
-                    @endforeach
-                </ul>
-            @endif
+                {{-- Mentor --}}
+                <div class="text-end">
+                    <span class="info-label text-muted">Mentor</span>
+                    @if($group->mentor)
+                        <span class="badge bg-label-info">{{ $group->mentor->name }}</span>
+                    @else
+                        <span class="badge bg-label-secondary">-</span>
+                    @endif
+                </div>
+            </div>
+
+            {{-- Baris 2: CAPTAIN (Dibuat Box Khusus) --}}
+            <div class="captain-box">
+                <div class="me-3">
+                    @if($group->captain && $group->captain->avatar)
+                        <img src="{{ asset($group->captain->avatar) }}" class="rounded-circle captain-avatar-ring" width="40" height="40">
+                    @else
+                        <div class="avatar avatar-sm">
+                            <span class="avatar-initial rounded-circle bg-warning text-white captain-avatar-ring">
+                                <i class="bx bxs-crown"></i>
+                            </span>
+                        </div>
+                    @endif
+                </div>
+
+                <div class="overflow-hidden">
+                    <span class="info-label text-warning mb-0">Team Captain</span>
+                    @if($group->captain)
+                        <h6 class="mb-0 text-dark text-truncate fw-bold">{{ $group->captain->name }}</h6>
+                    @else
+                        <small class="text-muted fst-italic">- Belum ada -</small>
+                    @endif
+                </div>
+            </div>
+
         </div>
 
-        {{-- Footer Card: Actions --}}
-        <div class="card-footer border-top d-flex justify-content-end bg-light p-3 rounded-bottom">
-            <form action="{{ route('admin.events.groups.destroy', ['event' => $event->id, 'group' => $group->id]) }}" method="POST" onsubmit="return confirm('Yakin hapus kelompok ini beserta anggotanya?');">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="btn btn-sm btn-outline-danger">
-                    <i class="bx bx-trash me-1"></i> Hapus Kelompok
-                </button>
-            </form>
+        {{-- Footer Actions --}}
+        <div class="card-footer border-top p-3 d-flex justify-content-between bg-white mt-auto">
+            <a href="{{ route('admin.events.groups.show', ['event' => $event->id, 'group' => $group->id]) }}" class="btn btn-sm btn-squid-outline px-3 rounded-pill">
+                <i class="bx bx-show me-1"></i> Detail
+            </a>
+            <div class="d-flex gap-2">
+                <a href="{{ route('admin.events.groups.edit', ['event' => $event->id, 'group' => $group->id]) }}" class="btn btn-sm btn-icon btn-label-secondary rounded-circle">
+                    <i class="bx bx-edit-alt"></i>
+                </a>
+                <form action="{{ route('admin.events.groups.destroy', ['event' => $event->id, 'group' => $group->id]) }}" method="POST" onsubmit="return confirm('Hapus kelompok ini?');">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="btn btn-sm btn-icon btn-label-danger rounded-circle">
+                        <i class="bx bx-trash"></i>
+                    </button>
+                </form>
+            </div>
         </div>
 
       </div>
     </div>
   @empty
-    <div class="col-12">
-        <div class="card text-center">
-            <div class="card-body py-5">
-                <div class="mb-3">
-                    <div class="badge bg-label-secondary p-3 rounded-circle">
-                        <i class="bx bx-group" style="font-size: 3rem;"></i>
-                    </div>
-                </div>
-                <h4>Belum ada Kelompok</h4>
-                <p class="text-muted">Event ini belum memiliki kelompok peserta.</p>
-            </div>
+    <div class="col-12 text-center py-5">
+        <div class="badge p-4 rounded-circle mb-3" style="background-color: #e0f2f1; color: #00a79d;">
+            <i class="bx bx-group fs-1"></i>
         </div>
+        <h4 class="text-muted">Belum ada Kelompok</h4>
+        <p class="text-muted mb-4">Buat kelompok untuk memulai kompetisi.</p>
+        <a href="{{ route('admin.events.groups.create', $event->id) }}" class="btn btn-primary" style="background-color: #00a79d; border:none;">
+            <i class="bx bx-plus"></i> Buat Kelompok
+        </a>
     </div>
   @endforelse
 </div>

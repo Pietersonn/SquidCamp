@@ -8,11 +8,12 @@
             title: 'Berhasil!',
             text: '{{ session("success") }}',
             timer: 2000,
-            showConfirmButton: false
+            showConfirmButton: false,
+            backdrop: false  // <-- Tambahkan ini agar background tidak gelap
         });
     @endif
 
-    // ERROR
+    // ERROR (Biasanya error tetap butuh fokus, jadi backdrop dibiarkan default/gelap)
     @if(session('error'))
         Swal.fire({
             icon: 'error',
@@ -35,7 +36,8 @@
         Swal.fire({
             icon: 'info',
             title: 'Info',
-            text: '{{ session("status") }}'
+            text: '{{ session("status") }}',
+            backdrop: false // Opsional: Status juga bisa dibuat tidak gelap
         });
     @endif
 </script>
