@@ -18,8 +18,6 @@ class DatabaseSeeder extends Seeder
             GroupSeeder::class,         // 3. Buat grup & assign mentor
             EventInvestorSeeder::class, // 4. Assign investor & saldonya
             GroupMemberSeeder::class,   // 5. Masukkan peserta ke grup
-            SquidChallengeSeeder::class, // 6. Buat soal challenge
-            SquidCaseSeeder::class,     // 7. Buat soal case
         ]);
     }
 }

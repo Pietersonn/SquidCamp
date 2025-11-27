@@ -32,50 +32,64 @@ class Event extends Model
         'show_end_time' => 'datetime',
     ];
 
-    // RELASI
+    // ================= RELASI UTAMA =================
 
+    // 1. Groups (Kelompok Peserta)
     public function groups()
     {
         return $this->hasMany(Group::class);
     }
 
+    // 2. Members (Semua Peserta yang join event ini)
     public function members()
     {
         return $this->hasMany(GroupMember::class);
     }
 
-    public function investors()
+    // 3. Investors (Investor yang masuk ke event ini)
+    // PENTING: Method ini yang dipanggil oleh EventInvestorController
+    public function eventInvestors()
     {
         return $this->hasMany(EventInvestor::class);
     }
 
-    // MANY-TO-MANY CHALLENGES
+    // Alias: Jika ada kode lama yang memanggil 'investors', arahkan ke 'eventInvestors'
+    public function investors()
+    {
+        return $this->eventInvestors();
+    }
+
+    // 4. Mentors (User yang menjadi mentor di event ini)
+    public function mentors()
+    {
+        return $this->belongsToMany(User::class, 'event_mentors', 'event_id', 'user_id')
+                    ->withPivot('id')
+                    ->withTimestamps();
+    }
+
+    // ================= RELASI MODULE GAME =================
+
+    // 5. Challenges (Fase 1)
     public function challenges()
     {
         return $this->belongsToMany(Challenge::class, 'event_challenges')
-            ->withTimestamps();
+                    ->withTimestamps();
     }
 
-    // MANY-TO-MANY GUIDELINES
+    // 6. Cases (Fase 2)
+    // Perhatikan: Menggunakan Model 'Cases' sesuai nama file Anda
+    public function cases()
+    {
+        return $this->belongsToMany(Cases::class, 'event_cases', 'event_id', 'case_id')
+                    ->withTimestamps();
+    }
+
+    // 7. Guidelines (Materi)
     public function guidelines()
     {
         return $this->belongsToMany(Guideline::class, 'event_guidelines')
-            ->withTimestamps();
+                    ->withTimestamps();
     }
 
-    // ONE CASE PER EVENT
-    public function squidCase()
-    {
-        return $this->hasOne(SquidCase::class);
-    }
 
-    public function cases()
-    {
-        return $this->belongsToMany(Cases::class, 'event_cases', 'event_id', 'case_id')->withTimestamps();
-    }
-
-    public function mentors()
-    {
-        return $this->belongsToMany(User::class, 'event_mentors', 'event_id', 'user_id')->withPivot('id')->withTimestamps();
-    }
 }

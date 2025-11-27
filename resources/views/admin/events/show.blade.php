@@ -245,7 +245,7 @@
                 </div>
             </div>
 
-            {{-- 2. PHASE TIMELINE (Menempel di bawah banner) --}}
+            {{-- 2. PHASE TIMELINE --}}
             <div class="phase-container">
                 <div class="d-flex gap-2 flex-wrap">
                     @php
@@ -333,8 +333,6 @@
                         'desc' => 'Materi & Aturan',
                         'color' => 'danger'
                     ],
-                    // Jika ada investor, bisa uncomment
-                    /*
                     [
                         'route' => 'admin.events.investors.index',
                         'icon' => 'bx-line-chart',
@@ -342,7 +340,6 @@
                         'desc' => 'Modal & Investasi',
                         'color' => 'dark'
                     ]
-                    */
                 ];
             @endphp
 
@@ -465,7 +462,6 @@
             const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-            // Format 2 digit (05m instead of 5m)
             const h = totalHours < 10 ? "0" + totalHours : totalHours;
             const m = minutes < 10 ? "0" + minutes : minutes;
             const s = seconds < 10 ? "0" + seconds : seconds;

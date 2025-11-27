@@ -108,6 +108,8 @@ Route::prefix('investor')->as('investor.')->middleware(['auth', 'role:investor']
 });
 
 
+
+
 /*
 |--------------------------------------------------------------------------
 | USER (MAIN) ROUTES
