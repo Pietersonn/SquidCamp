@@ -1,59 +1,62 @@
-<?php
+  <?php
 
-use Illuminate\Support\Facades\Route;
+  use Illuminate\Support\Facades\Route;
 
-// AUTH
-use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Auth\RegisterController;
-use App\Http\Controllers\Auth\GoogleAuthController;
+  // AUTH
+  use Illuminate\Support\Facades\Auth; 
+  use App\Http\Controllers\Auth\LoginController;
+  use App\Http\Controllers\Auth\RegisterController;
+  use App\Http\Controllers\Auth\ForgotPasswordController;
+  use App\Http\Controllers\Auth\GoogleAuthController;
 
-// ADMIN
-use App\Http\Controllers\Admin\AdminDashboardController;
-use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Admin\EventController;
-use App\Http\Controllers\Admin\ChallengeController;
-use App\Http\Controllers\Admin\GuidelineController;
-use App\Http\Controllers\Admin\CaseController; // Master Case
-use App\Http\Controllers\Admin\EventGroupController;
-use App\Http\Controllers\Admin\EventMentorController;
-use App\Http\Controllers\Admin\EventInvestorController;
-use App\Http\Controllers\Admin\EventChallengeController;
-use App\Http\Controllers\Admin\EventCaseController; // Event Case
-use App\Http\Controllers\Admin\EventGuidelineController;
+  // Controller Admin (Sesuai file yang ada)
+  use App\Http\Controllers\Admin\AdminDashboardController;
+  use App\Http\Controllers\Admin\UserController;
+  use App\Http\Controllers\Admin\EventController;
+  use App\Http\Controllers\Admin\EventGroupController;
+  use App\Http\Controllers\Admin\EventMentorController;
+  use App\Http\Controllers\Admin\EventInvestorController;
+  use App\Http\Controllers\Admin\EventChallengeController;
+  use App\Http\Controllers\Admin\EventCaseController;
+  use App\Http\Controllers\Admin\EventGuidelineController;
+  use App\Http\Controllers\Admin\ChallengeController;
+  use App\Http\Controllers\Admin\GuidelineController;
+  use App\Http\Controllers\Admin\CaseController;
 
-// ROLE LAIN
-use App\Http\Controllers\Mentor\MentorDashboardController;
-use App\Http\Controllers\Investor\InvestorDashboardController;
-use App\Http\Controllers\Main\MainDashboardController;
+  // Controller Lainnya
+  use App\Http\Controllers\Mentor\MentorDashboardController;
+  use App\Http\Controllers\Investor\InvestorDashboardController;
+  use App\Http\Controllers\Main\MainDashboardController;
+  use App\Http\Controllers\Main\OnboardingController;
 
-/*
-|--------------------------------------------------------------------------
-| AUTH ROUTES
-|--------------------------------------------------------------------------
-*/
+  /*
+  |--------------------------------------------------------------------------
+  | AUTH ROUTES
+  |--------------------------------------------------------------------------
+  */
 
-Route::get('/', fn() => redirect()->route('login'));
+  Route::get('/', fn() => redirect()->route('login'));
 
-Route::get('/login', [LoginController::class, 'index'])->name('login')->middleware('guest');
-Route::post('/login', [LoginController::class, 'login'])->middleware('guest');
+  Route::get('/login', [LoginController::class, 'index'])->name('login')->middleware('guest');
+  Route::post('/login', [LoginController::class, 'login'])->middleware('guest');
 
-Route::get('/register', [RegisterController::class, 'index'])->name('register')->middleware('guest');
-Route::post('/register', [RegisterController::class, 'register'])->middleware('guest');
+  Route::get('/register', [RegisterController::class, 'index'])->name('register')->middleware('guest');
+  Route::post('/register', [RegisterController::class, 'register'])->middleware('guest');
 
-Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
+  Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
 
-// Google Auth
-Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect'])->name('auth.google.redirect');
-Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
+  // Google Auth
+  Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect'])->name('auth.google.redirect');
+  Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
 
 
-/*
-|--------------------------------------------------------------------------
-| ADMIN ROUTES
-|--------------------------------------------------------------------------
-*/
+  /*
+  |--------------------------------------------------------------------------
+  | ADMIN ROUTES
+  |--------------------------------------------------------------------------
+  */
 
-Route::prefix('admin')->as('admin.')->middleware(['auth', 'role:admin'])->group(function () {
+  Route::prefix('admin')->as('admin.')->middleware(['auth', 'role:admin'])->group(function () {
 
     // Dashboard
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
@@ -73,49 +76,59 @@ Route::prefix('admin')->as('admin.')->middleware(['auth', 'role:admin'])->group(
     // EVENT SUB-MENU
     Route::prefix('events/{event}')->as('events.')->group(function () {
 
-        Route::resource('groups', EventGroupController::class);
-        Route::resource('mentors', EventMentorController::class);
-        Route::resource('investors', EventInvestorController::class);
+      Route::resource('groups', EventGroupController::class);
+      Route::resource('mentors', EventMentorController::class);
+      Route::resource('investors', EventInvestorController::class);
 
-        // PER-EVENT CONFIGURATION
-        Route::resource('challenges', EventChallengeController::class);
-        Route::resource('guidelines', EventGuidelineController::class);
-        Route::resource('cases', EventCaseController::class); // Event Cases
+      // PER-EVENT CONFIGURATION
+      Route::resource('challenges', EventChallengeController::class);
+      Route::resource('guidelines', EventGuidelineController::class);
+      Route::resource('cases', EventCaseController::class); // Event Cases
     });
+  });
 
-});
 
+  /*
+  |--------------------------------------------------------------------------
+  | MENTOR ROUTES
+  |--------------------------------------------------------------------------
+  */
 
-/*
-|--------------------------------------------------------------------------
-| MENTOR ROUTES
-|--------------------------------------------------------------------------
-*/
-
-Route::prefix('mentor')->as('mentor.')->middleware(['auth', 'role:mentor'])->group(function () {
+  Route::prefix('mentor')->as('mentor.')->middleware(['auth', 'role:mentor'])->group(function () {
     Route::get('/dashboard', [MentorDashboardController::class, 'index'])->name('dashboard');
-});
+  });
 
 
-/*
-|--------------------------------------------------------------------------
-| INVESTOR ROUTES
-|--------------------------------------------------------------------------
-*/
+  /*
+  |--------------------------------------------------------------------------
+  | INVESTOR ROUTES
+  |--------------------------------------------------------------------------
+  */
 
-Route::prefix('investor')->as('investor.')->middleware(['auth', 'role:investor'])->group(function () {
+  Route::prefix('investor')->as('investor.')->middleware(['auth', 'role:investor'])->group(function () {
     Route::get('/dashboard', [InvestorDashboardController::class, 'index'])->name('dashboard');
-});
+  });
 
 
 
 
-/*
-|--------------------------------------------------------------------------
-| USER (MAIN) ROUTES
-|--------------------------------------------------------------------------
-*/
+  /*
+  |--------------------------------------------------------------------------
+  | USER (MAIN) ROUTES
+  |--------------------------------------------------------------------------
+  */
 
-Route::prefix('main')->as('main.')->middleware(['auth', 'role:user'])->group(function () {
-    Route::get('/dashboard', [MainDashboardController::class, 'index'])->name('dashboard');
-});
+  // --- ROLE: USER (MAIN) ---
+  Route::middleware(['auth', 'role:user'])->prefix('main')->name('main.')->group(function () {
+
+    // Group Middleware CheckEventMembership (Wajib punya tim)
+    Route::middleware([App\Http\Middleware\CheckEventMembership::class])->group(function () {
+
+      // Dashboard Utama
+      Route::get('/dashboard', [MainDashboardController::class, 'index'])->name('dashboard');
+
+      // Onboarding (Pilih Kelompok)
+      Route::get('/onboarding', [OnboardingController::class, 'index'])->name('onboarding.index');
+      Route::post('/onboarding', [OnboardingController::class, 'store'])->name('onboarding.store');
+    });
+  });
