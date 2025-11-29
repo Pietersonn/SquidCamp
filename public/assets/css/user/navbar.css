@@ -1,0 +1,174 @@
+/* === COMPONENT: BOTTOM NAVBAR (DOCK STYLE) === */
+.squid-navbar {
+    background: white;
+    border-top-left-radius: 25px;
+    border-top-right-radius: 25px;
+    box-shadow: 0 -5px 30px rgba(0,0,0,0.08);
+    padding: 0;
+    height: 80px; /* Tinggi fix agar rapi */
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    z-index: 1040;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Container untuk item kiri dan kanan */
+.nav-section {
+    display: flex;
+    width: 40%; /* Sisakan ruang tengah 20% untuk tombol bulat */
+    justify-content: space-around;
+    align-items: center;
+    height: 100%;
+}
+
+.nav-link-item {
+    color: #b4bdce;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    width: 100%;
+    position: relative;
+}
+
+.nav-link-item i {
+    font-size: 1.5rem;
+    margin-bottom: 4px;
+    transition: transform 0.2s;
+}
+
+.nav-link-item span {
+    font-size: 0.65rem;
+    font-weight: 600;
+}
+
+/* Active State */
+.nav-link-item.active {
+    color: #00a79d;
+}
+
+.nav-link-item.active i {
+    transform: translateY(-3px);
+}
+
+/* === CENTRAL FLOATING MENU BUTTON === */
+.center-menu-btn {
+    position: absolute;
+    left: 50%;
+    top: -25px; /* Naik ke atas navbar */
+    transform: translateX(-50%);
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, #00a79d 0%, #00d4c7 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 20px rgba(0, 167, 157, 0.4);
+    border: 6px solid #f5f5f9; /* Border warna background body agar terlihat 'terpotong' */
+    z-index: 1050;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.center-menu-btn:active {
+    transform: translateX(-50%) scale(0.95);
+}
+
+.center-menu-btn i {
+    font-size: 2.2rem;
+    color: white;
+}
+
+/* === MENU OVERLAY (The 'Game Phases' Menu) === */
+.menu-overlay {
+    position: fixed;
+    bottom: -100%; /* Sembunyi di bawah layar */
+    left: 0;
+    width: 100%;
+    background: white;
+    border-top-left-radius: 30px;
+    border-top-right-radius: 30px;
+    padding: 30px 20px 110px 20px; /* Padding bawah besar agar tidak tertutup nav */
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.1);
+    z-index: 1035; /* Di bawah tombol tengah, di atas navbar */
+    transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Efek membal (bounce) */
+}
+
+.menu-overlay.show {
+    bottom: 0;
+}
+
+.menu-overlay-header {
+    text-align: center;
+    margin-bottom: 25px;
+    position: relative;
+}
+
+/* Garis kecil untuk indikator swipe (hiasan) */
+.menu-handle {
+    width: 40px;
+    height: 4px;
+    background: #e0e0e0;
+    border-radius: 10px;
+    margin: 0 auto 15px auto;
+}
+
+/* Grid Menu Item */
+.phase-menu-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+
+.phase-item {
+    background: #f8f9fa;
+    border-radius: 16px;
+    padding: 15px 10px;
+    text-align: center;
+    text-decoration: none;
+    color: #566a7f;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+}
+
+.phase-item:active {
+    background: #e8fadf;
+    border-color: #00a79d;
+    transform: scale(0.95);
+}
+
+.phase-icon {
+    font-size: 2rem;
+    margin-bottom: 8px;
+    color: #00a79d;
+    display: block;
+}
+
+.phase-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: block;
+}
+
+/* Backdrop Gelap saat menu buka */
+.menu-backdrop {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1030;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.menu-backdrop.show {
+    display: block;
+    opacity: 1;
+}
