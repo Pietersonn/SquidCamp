@@ -24,6 +24,7 @@ use App\Http\Controllers\Investor\InvestorDashboardController;
 use App\Http\Controllers\Main\MainDashboardController;
 use App\Http\Controllers\Main\OnboardingController;
 use App\Http\Controllers\Main\TransactionController;
+use App\Http\Controllers\Main\ChallengeController as MainChallengeController;
 use App\Http\Controllers\LandingPageController;
 
 /*
@@ -65,10 +66,7 @@ Route::prefix('admin')->as('admin.')->middleware(['auth', 'role:admin'])->group(
         Route::resource('challenges', EventChallengeController::class);
         Route::resource('guidelines', EventGuidelineController::class);
         Route::resource('cases', EventCaseController::class);
-
     });
-
-
 });
 
 /*
@@ -106,6 +104,9 @@ Route::middleware(['auth', 'role:user'])->group(function () {
 
              // Transfer Saldo (INI PENTING)
              Route::post('/transfer', [TransactionController::class, 'transfer'])->name('transaction.transfer');
+
+             // Fitur Lain
+             Route::get('/challenges', [MainChallengeController::class, 'index'])->name('challenges.index');
              Route::get('/leaderboard', function() { return "Leaderboard Page"; })->name('leaderboard.index');
          });
 });

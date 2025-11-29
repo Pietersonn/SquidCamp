@@ -10,6 +10,14 @@ class Group extends Model
     use HasFactory;
 
     protected $guarded = ['id'];
+    protected $fillable = [
+        'event_id',
+        'name',
+        'mentor_id',
+        'captain_id',
+        'cocaptain_id',
+        'squid_dollar', // Wajib ada
+    ];
 
     // Relasi: Grup ini milik SATU Event
     public function event()

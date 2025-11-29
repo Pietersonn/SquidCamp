@@ -9,7 +9,7 @@
         background: linear-gradient(135deg, #00a79d 0%, #00d4c7 100%);
         border-bottom-left-radius: 35px;
         border-bottom-right-radius: 35px;
-        padding: 40px 25px 90px 25px;
+        padding: 40px 25px 90px 25px; /* Extra padding bawah untuk overlap card */
         color: white;
         position: relative;
     }
@@ -21,12 +21,12 @@
         object-fit: cover; background: #fff;
     }
 
-    /* --- FLOATING BALANCE CARD --- */
+    /* --- FLOATING BALANCE CARD (REVISED) --- */
     .balance-card {
         background: white;
         border-radius: 24px;
         padding: 25px;
-        margin: -60px 20px 25px 20px;
+        margin: -60px 20px 25px 20px; /* Margin negatif agar naik ke atas header */
         box-shadow: 0 15px 35px rgba(169, 173, 181, 0.15);
         position: relative; z-index: 10;
         display: flex; justify-content: space-between; align-items: center;
@@ -36,7 +36,7 @@
         font-family: 'Public Sans', sans-serif;
         font-weight: 800;
         color: #232b2b;
-        font-size: 2rem;
+        font-size: 2rem; /* Ukuran font lebih besar */
         line-height: 1;
         letter-spacing: -0.5px;
     }
@@ -49,7 +49,7 @@
         font-weight: 600;
     }
 
-    /* Tombol Transfer */
+    /* Tombol Transfer yang mencolok tapi elegan */
     .btn-transfer-float {
         width: 55px; height: 55px;
         background: linear-gradient(135deg, #e0f2f1 0%, #ffffff 100%);
@@ -167,7 +167,7 @@
 {{-- 4. ACTIVE MISSION --}}
 <div class="section-heading">
     <h6>Misi Terbaru</h6>
-    <a href="#">Lihat Semua</a>
+    <a href="{{ route('main.challenges.index') }}">Lihat Semua</a>
 </div>
 
 <div class="mission-card">
@@ -175,7 +175,7 @@
     <h5 class="fw-bold text-dark mb-1">Belum ada misi aktif</h5>
     <p class="text-muted small mb-3">Tunggu instruksi mentor untuk tantangan selanjutnya.</p>
 
-    <a href="#" class="btn btn-sm btn-primary w-100 rounded-pill" style="background-color: #00a79d; border:none;">
+    <a href="{{ route('main.challenges.index') }}" class="btn btn-sm btn-primary w-100 rounded-pill" style="background-color: #00a79d; border:none;">
         Cek Arena Lomba
     </a>
 </div>
@@ -189,7 +189,6 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body pt-4">
-                {{-- ACTION POINT: Pastikan route ini benar --}}
                 <form action="{{ route('main.transaction.transfer') }}" method="POST">
                     @csrf
 
@@ -198,8 +197,6 @@
                         <label class="form-label small fw-bold text-muted">Penerima</label>
                         <select class="form-select form-select-lg border-0 bg-light" name="to_group_id" required style="border-radius: 15px;">
                             <option value="" selected disabled>Pilih Kelompok...</option>
-
-                            {{-- Loop Groups Lain --}}
                             @if(isset($allGroups) && count($allGroups) > 0)
                                 @foreach($allGroups as $targetGroup)
                                     <option value="{{ $targetGroup->id }}">{{ $targetGroup->name }}</option>
@@ -207,7 +204,6 @@
                             @else
                                 <option disabled>Tidak ada kelompok lain</option>
                             @endif
-
                         </select>
                     </div>
 

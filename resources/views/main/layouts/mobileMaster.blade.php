@@ -6,27 +6,20 @@
     <title>@yield('title') - SquidCamp</title>
 
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="{{ asset('assets/favicon.ico') }}" />
+    <link rel="icon" type="image/x-icon" href="{{ asset('assets/img/favicon/favicon.ico') }}" />
 
-    <!-- Fonts -->
+    <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet" />
 
-    {{--
-        ========================================
-        1. VITE: LIBRARY BAWAAN (SCSS & JS)
-        ========================================
-    --}}
-    @vite([
-        // HAPUS boxicons.css dari sini jika error 404 terus.
-        // Kita akan panggil icon lewat CDN saja agar lebih stabil & pasti muncul.
+    <!-- CDN Icons Boxicons (Paling Aman) -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 
-        // Core Styles (SCSS)
+    {{-- VITE RESOURCES --}}
+    @vite([
         'resources/assets/vendor/scss/core.scss',
         'resources/assets/vendor/scss/theme-default.scss',
-
-        // JS Files
         'resources/assets/vendor/libs/jquery/jquery.js',
         'resources/assets/vendor/libs/popper/popper.js',
         'resources/assets/vendor/js/bootstrap.js',
@@ -34,21 +27,8 @@
         'resources/assets/js/config.js'
     ])
 
-    {{--
-        SOLUSI ICON HILANG: Gunakan CDN Boxicons
-        Ini cara paling ampuh memastikan icon muncul tanpa pusing path lokal.
-    --}}
-    <link rel="stylesheet" href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css">
-
-    {{--
-        ========================================
-        2. MANUAL CSS: CUSTOM TEMA & NAVIGASI
-        ========================================
-    --}}
-    {{-- Path: public/assets/css/user/squid-theme.css --}}
+    {{-- MANUAL CSS --}}
     <link rel="stylesheet" href="{{ asset('assets/css/user/squid-theme.css') }}" />
-
-    {{-- Path: public/assets/css/user/navbar.css --}}
     <link rel="stylesheet" href="{{ asset('assets/css/user/navbar.css') }}" />
 
     @yield('styles')
@@ -63,8 +43,44 @@
         @include('main.layouts.bottom-nav')
     @endif
 
-    {{-- SweetAlert --}}
+    {{-- SweetAlert JS --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    {{-- SCRIPT GLOBAL NOTIFIKASI (TAMBAHAN BARU) --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Cek Flash Message Success
+            @if(session('success'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: "{{ session('success') }}",
+                    confirmButtonColor: '#00a79d',
+                    timer: 3000
+                });
+            @endif
+
+            // Cek Flash Message Error
+            @if(session('error'))
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal!',
+                    text: "{{ session('error') }}",
+                    confirmButtonColor: '#d33'
+                });
+            @endif
+
+            // Cek Validation Errors (Laravel $errors)
+            @if($errors->any())
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Perhatian',
+                    html: '<ul style="text-align:left;">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>',
+                    confirmButtonColor: '#00a79d'
+                });
+            @endif
+        });
+    </script>
 
     @stack('scripts')
 </body>

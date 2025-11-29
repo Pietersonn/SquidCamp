@@ -21,8 +21,9 @@ class TransactionController extends Controller
         ]);
 
         $user = Auth::user();
+        $amount = (int) $request->amount; // Pastikan jadi integer
 
-        // 2. Ambil Grup Pengirim (Grup milik User yang sedang login)
+        // 2. Ambil Data Pengirim
         $senderMembership = GroupMember::where('user_id', $user->id)
             ->whereHas('event', function ($q) {
                 $q->where('is_active', true);
@@ -30,52 +31,54 @@ class TransactionController extends Controller
             ->first();
 
         if (!$senderMembership) {
-            return back()->with('error', 'Anda tidak memiliki tim aktif.');
+            return back()->with('error', 'Anda tidak tergabung dalam tim aktif.');
         }
 
-        $senderGroup = Group::find($senderMembership->group_id);
-        $receiverGroup = Group::find($request->to_group_id);
-
-        // 3. Validasi Logika Bisnis
-        // Cek apakah transfer ke diri sendiri?
-        if ($senderGroup->id == $receiverGroup->id) {
-            return back()->with('error', 'Tidak bisa transfer ke kelompok sendiri.');
-        }
-
-        // Cek apakah saldo cukup?
-        if ($senderGroup->squid_dollar < $request->amount) {
-            return back()->with('error', 'Saldo tim tidak mencukupi!');
-        }
-
-        // 4. Eksekusi Transaksi (Atomik)
+        // 3. Lock Database untuk mencegah saldo minus saat banyak transaksi bersamaan
         DB::beginTransaction();
         try {
-            // Kurangi Saldo Pengirim
-            $senderGroup->decrement('squid_dollar', $request->amount);
+            // Ambil data terbaru dengan lockForUpdate
+            $senderGroup = Group::where('id', $senderMembership->group_id)->lockForUpdate()->first();
+            $receiverGroup = Group::where('id', $request->to_group_id)->lockForUpdate()->first();
 
-            // Tambah Saldo Penerima
-            $receiverGroup->increment('squid_dollar', $request->amount);
+            // Validasi Transfer ke Diri Sendiri
+            if ($senderGroup->id == $receiverGroup->id) {
+                DB::rollBack();
+                return back()->with('error', 'Tidak bisa transfer ke tim sendiri.');
+            }
 
-            // Catat di Tabel Transaksi (History)
+            // Validasi Saldo Cukup
+            if ($senderGroup->squid_dollar < $amount) {
+                DB::rollBack();
+                return back()->with('error', 'Saldo tim tidak cukup!');
+            }
+
+            // 4. Proses Pindah Saldo (Manual Calculation agar lebih akurat)
+            $senderGroup->squid_dollar -= $amount;
+            $senderGroup->save();
+
+            $receiverGroup->squid_dollar += $amount;
+            $receiverGroup->save();
+
+            // 5. Catat Riwayat
             Transaction::create([
                 'event_id' => $senderMembership->event_id,
-                'from_entity_type' => 'group',
-                'from_entity_id' => $senderGroup->id,
-                'to_entity_type' => 'group',
-                'to_entity_id' => $receiverGroup->id,
-                'amount' => $request->amount,
+                'from_type' => 'group',
+                'from_id' => $senderGroup->id,
+                'to_type' => 'group',
+                'to_id' => $receiverGroup->id,
+                'amount' => $amount,
                 'reason' => 'GROUP_TRANSFER',
+                'description' => 'Transfer dari ' . $senderGroup->name
             ]);
 
             DB::commit();
 
-            // Redirect kembali dengan pesan sukses
-            return redirect()->route('main.dashboard')
-                             ->with('success', 'Berhasil mengirim SQ$ ' . number_format($request->amount));
+            return back()->with('success', 'Berhasil transfer SQ$ ' . number_format($amount) . ' ke ' . $receiverGroup->name);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Gagal: ' . $e->getMessage());
+            return back()->with('error', 'Gagal transfer: ' . $e->getMessage());
         }
     }
 }

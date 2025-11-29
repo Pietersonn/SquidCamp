@@ -2,25 +2,32 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Transaction extends Model
 {
     use HasFactory;
 
-    protected $guarded = ['id'];
+    protected $fillable = [
+        'event_id',
+        'from_type',
+        'from_id',
+        'to_type',
+        'to_id',
+        'amount',
+        'reason',
+        'description', // Pastikan kolom ini ada di migrasi database kamu, jika tidak hapus baris ini
+    ];
 
-    // Relasi ke Group (Penerima Dana)
-    public function group()
+    // Relasi Opsional (Biar enak kalau mau dipanggil)
+    public function fromGroup()
     {
-        // Asumsi: to_type = 'group', maka to_id adalah id group
-        return $this->belongsTo(Group::class, 'to_id');
+        return $this->belongsTo(Group::class, 'from_id');
     }
 
-    // Relasi ke Pengirim (Investor/User)
-    public function sender()
+    public function toGroup()
     {
-        return $this->belongsTo(User::class, 'from_id');
+        return $this->belongsTo(Group::class, 'to_id');
     }
 }
