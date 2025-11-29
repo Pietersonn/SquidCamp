@@ -2,147 +2,166 @@
 
 @section('title', 'Pilih Tim')
 
+@section('styles')
+<style>
+    /* Header Sticky */
+    .header-onboarding {
+        position: sticky; top: 0; z-index: 50;
+        background: rgba(255,255,255,0.95); backdrop-filter: blur(5px);
+        padding: 20px 20px 10px 20px;
+        border-bottom-left-radius: 25px; border-bottom-right-radius: 25px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+        text-align: center;
+    }
+
+    /* Group Card List */
+    .group-label { cursor: pointer; width: 100%; display: block; margin-bottom: 12px; }
+    .group-card {
+        background: white; border-radius: 16px; padding: 15px;
+        display: flex; align-items: center;
+        border: 2px solid transparent;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        transition: all 0.2s;
+    }
+    .group-input:checked + .group-card {
+        border-color: #00a79d; background: #f0fdfa;
+        transform: scale(1.02);
+    }
+    .group-icon {
+        width: 45px; height: 45px; background: #e7e7ff; color: #696cff;
+        border-radius: 12px; display: flex; align-items: center; justify-content: center;
+        font-size: 1.4rem; margin-right: 15px;
+    }
+    .group-input:checked + .group-card .group-icon { background: #00a79d; color: white; }
+
+    /* Bottom Sheet (Role) */
+    #roleSheet {
+        position: fixed; bottom: -100%; left: 0; width: 100%;
+        background: white; border-top-left-radius: 30px; border-top-right-radius: 30px;
+        padding: 30px 20px; box-shadow: 0 -10px 50px rgba(0,0,0,0.15);
+        z-index: 100; transition: bottom 0.4s cubic-bezier(0.33, 1, 0.68, 1);
+    }
+    #roleSheet.show { bottom: 0; }
+
+    .role-box-label { cursor: pointer; width: 100%; }
+    .role-box {
+        background: #f8f9fa; border: 2px solid transparent;
+        border-radius: 15px; padding: 15px 5px; text-align: center;
+        transition: 0.2s;
+    }
+    .role-input:checked + .role-box {
+        background: #e0f2f1; border-color: #00a79d; color: #00a79d;
+    }
+    .role-input:disabled + .role-box {
+        opacity: 0.4; filter: grayscale(1); cursor: not-allowed;
+    }
+
+    .btn-confirm {
+        background: #00a79d; color: white; border: none;
+        width: 100%; padding: 15px; border-radius: 15px;
+        font-weight: bold; font-size: 1rem; margin-top: 20px;
+        box-shadow: 0 5px 15px rgba(0, 167, 157, 0.3);
+    }
+</style>
+@endsection
+
 @section('content')
 
-<div class="onboarding-overlay">
-    <form action="{{ route('main.onboarding.store') }}" method="POST" class="onboarding-card" id="onboardingForm">
-        @csrf
+<div class="header-onboarding">
+    <h4 class="fw-bold m-0 text-dark">Pilih Pasukan</h4>
+    <p class="text-muted small m-0">Gabung ke tim untuk memulai event.</p>
+</div>
 
-        <div class="onboarding-header">
-            <div class="avatar mx-auto mb-3">
-                <span class="avatar-initial rounded-circle bg-label-primary p-3 fs-2">🚀</span>
-            </div>
-            <h4 class="fw-bold mb-1 text-dark">Pilih Pasukanmu!</h4>
-            <p class="text-muted small">Kamu harus bergabung dalam tim untuk memulai.</p>
+<form action="{{ route('main.onboarding.store', $event->id) }}" method="POST">
+    @csrf
+    <div class="container px-3 pt-3 pb-5" style="margin-bottom: 200px;">
+        @foreach($groups as $group)
+            <label class="group-label">
+                <input type="radio" name="group_id" value="{{ $group->id }}" class="d-none group-input"
+                       data-cap="{{ $group->captain_id ? '1' : '0' }}"
+                       data-cocap="{{ $group->cocaptain_id ? '1' : '0' }}"
+                       onchange="openRoleSheet(this)">
+
+                <div class="group-card">
+                    <div class="group-icon"><i class='bx bx-group'></i></div>
+                    <div>
+                        <h6 class="fw-bold text-dark mb-0">{{ $group->name }}</h6>
+                        <small class="text-muted">{{ $group->members_count }} Anggota</small>
+                    </div>
+                    <i class='bx bxs-check-circle ms-auto fs-4 text-primary opacity-0 check-mark'></i>
+                </div>
+            </label>
+        @endforeach
+    </div>
+
+    {{-- Bottom Sheet --}}
+    <div id="roleSheet">
+        <div class="text-center mb-4">
+            <div style="width: 50px; height: 5px; background: #e0e0e0; border-radius: 10px; margin: 0 auto;"></div>
         </div>
+        <h5 class="fw-bold text-center mb-4">Pilih Peran</h5>
 
-        <div class="onboarding-body">
-            <h6 class="text-uppercase text-muted small fw-bold mb-3">Daftar Kelompok</h6>
-
-            {{-- Loop Groups --}}
-            @foreach($groups as $group)
-                <label class="w-100">
-                    <input type="radio" name="group_id" value="{{ $group->id }}" class="d-none"
-                           data-cap="{{ $group->captain_id ? '1' : '0' }}"
-                           data-cocap="{{ $group->cocaptain_id ? '1' : '0' }}"
-                           onchange="selectGroup(this)">
-
-                    <div class="group-option">
-                        <div class="d-flex align-items-center">
-                            <div class="avatar avatar-xs me-3">
-                                <span class="avatar-initial rounded-circle bg-label-info"><i class='bx bx-group'></i></span>
-                            </div>
-                            <div>
-                                <h6 class="mb-0 fw-bold text-dark">{{ $group->name }}</h6>
-                                <small class="text-muted">{{ $group->members_count }} Anggota</small>
-                            </div>
-                        </div>
-                        <i class='bx bx-chevron-right text-muted'></i>
+        <div class="row g-2">
+            <div class="col-4">
+                <label class="role-box-label">
+                    <input type="radio" name="role" value="captain" class="d-none role-input" id="radio-cap">
+                    <div class="role-box">
+                        <i class='bx bxs-crown fs-2 mb-1 text-warning'></i>
+                        <span class="d-block small fw-bold">Captain</span>
                     </div>
                 </label>
-            @endforeach
-
-            {{-- Role Selection (Hidden Awalnya) --}}
-            <div id="roleSelection" class="role-selector">
-                <h6 class="text-uppercase text-muted small fw-bold mb-3 text-center">Pilih Peran</h6>
-
-                <div class="row g-2">
-                    {{-- Captain --}}
-                    <div class="col-4">
-                        <label class="w-100">
-                            <input type="radio" name="role" value="captain" class="d-none role-radio" id="radio-cap">
-                            <div class="menu-item-card p-2 d-flex flex-column align-items-center justify-content-center h-100" style="border: 1px solid #eee;">
-                                <i class='bx bxs-crown text-warning fs-3 mb-1'></i>
-                                <span class="small fw-bold d-block">Captain</span>
-                            </div>
-                        </label>
-                    </div>
-
-                    {{-- Co-Captain --}}
-                    <div class="col-4">
-                        <label class="w-100">
-                            <input type="radio" name="role" value="cocaptain" class="d-none role-radio" id="radio-cocap">
-                            <div class="menu-item-card p-2 d-flex flex-column align-items-center justify-content-center h-100" style="border: 1px solid #eee;">
-                                <i class='bx bxs-star text-secondary fs-3 mb-1'></i>
-                                <span class="small fw-bold d-block">Co-Capt</span>
-                            </div>
-                        </label>
-                    </div>
-
-                    {{-- Member --}}
-                    <div class="col-4">
-                        <label class="w-100">
-                            <input type="radio" name="role" value="member" class="d-none role-radio" checked>
-                            <div class="menu-item-card p-2 d-flex flex-column align-items-center justify-content-center h-100" style="border: 1px solid #eee;">
-                                <i class='bx bxs-user text-info fs-3 mb-1'></i>
-                                <span class="small fw-bold d-block">Member</span>
-                            </div>
-                        </label>
-                    </div>
-                </div>
-
-                <button type="submit" class="btn-main">Masuk ke Event</button>
             </div>
-
+            <div class="col-4">
+                <label class="role-box-label">
+                    <input type="radio" name="role" value="cocaptain" class="d-none role-input" id="radio-cocap">
+                    <div class="role-box">
+                        <i class='bx bxs-star fs-2 mb-1 text-info'></i>
+                        <span class="d-block small fw-bold">Co-Capt</span>
+                    </div>
+                </label>
+            </div>
+            <div class="col-4">
+                <label class="role-box-label">
+                    <input type="radio" name="role" value="member" class="d-none role-input" checked>
+                    <div class="role-box">
+                        <i class='bx bxs-user fs-2 mb-1 text-secondary'></i>
+                        <span class="d-block small fw-bold">Member</span>
+                    </div>
+                </label>
+            </div>
         </div>
-    </form>
-</div>
+
+        <button type="submit" class="btn-confirm">Konfirmasi & Masuk</button>
+    </div>
+</form>
 
 @endsection
 
 @push('scripts')
 <script>
-    function selectGroup(input) {
-        // Tampilkan bagian Role
-        document.getElementById('roleSelection').style.display = 'block';
+    function openRoleSheet(input) {
+        // Tampilkan Sheet
+        document.getElementById('roleSheet').classList.add('show');
 
-        // Scroll ke bawah
-        document.querySelector('.onboarding-body').scrollTo({ top: 1000, behavior: 'smooth' });
-
-        // Cek slot role
+        // Cek Role Availability
         const isCapTaken = input.getAttribute('data-cap') === '1';
         const isCoCapTaken = input.getAttribute('data-cocap') === '1';
-
         const radioCap = document.getElementById('radio-cap');
         const radioCoCap = document.getElementById('radio-cocap');
-        const cardCap = radioCap.nextElementSibling;
-        const cardCoCap = radioCoCap.nextElementSibling;
 
-        // Reset State
+        // Reset
         radioCap.disabled = false;
         radioCoCap.disabled = false;
-        cardCap.style.opacity = '1';
-        cardCoCap.style.opacity = '1';
 
-        // Disable jika taken
+        // Disable if taken
         if(isCapTaken) {
             radioCap.disabled = true;
-            cardCap.style.opacity = '0.5';
             if(radioCap.checked) document.querySelector('input[value="member"]').checked = true;
         }
-
         if(isCoCapTaken) {
             radioCoCap.disabled = true;
-            cardCoCap.style.opacity = '0.5';
             if(radioCoCap.checked) document.querySelector('input[value="member"]').checked = true;
         }
     }
-
-    // CSS Active State untuk Radio Button Role
-    document.querySelectorAll('.role-radio').forEach(radio => {
-        radio.addEventListener('change', function() {
-            // Reset semua border
-            document.querySelectorAll('.role-radio').forEach(r => {
-                r.nextElementSibling.style.borderColor = '#eee';
-                r.nextElementSibling.style.backgroundColor = '#fff';
-            });
-
-            // Set active style
-            if(this.checked) {
-                this.nextElementSibling.style.borderColor = '#00a79d';
-                this.nextElementSibling.style.backgroundColor = '#f0fdfa';
-            }
-        });
-    });
 </script>
 @endpush

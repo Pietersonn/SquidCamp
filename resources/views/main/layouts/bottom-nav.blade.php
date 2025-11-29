@@ -10,7 +10,7 @@
 
     <div class="phase-menu-grid">
         {{-- PHASE 1: CHALLENGE --}}
-        <a href="{{ route('main.challenges.index') }}" class="phase-item">
+        <a href="#" class="phase-item">
             <i class='bx bx-joystick phase-icon'></i>
             <span class="phase-title">Challenges</span>
             <small class="d-block text-muted" style="font-size: 10px;">Misi Harian</small>
