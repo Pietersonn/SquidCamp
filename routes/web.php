@@ -39,12 +39,12 @@ use App\Http\Controllers\LandingPageController;
 Route::get('/', [LandingPageController::class, 'index'])->name('landing');
 
 Route::middleware('guest')->group(function () {
-  Route::get('/login', [LoginController::class, 'index'])->name('login');
-  Route::post('/login', [LoginController::class, 'login']);
-  Route::get('/register', [RegisterController::class, 'index'])->name('register');
-  Route::post('/register', [RegisterController::class, 'register']);
-  Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect'])->name('auth.google.redirect');
-  Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
+    Route::get('/login', [LoginController::class, 'index'])->name('login');
+    Route::post('/login', [LoginController::class, 'login']);
+    Route::get('/register', [RegisterController::class, 'index'])->name('register');
+    Route::post('/register', [RegisterController::class, 'register']);
+    Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect'])->name('auth.google.redirect');
+    Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
 });
 
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
@@ -55,34 +55,52 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->midd
 |--------------------------------------------------------------------------
 */
 Route::prefix('admin')->as('admin.')->middleware(['auth', 'role:admin'])->group(function () {
-  Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
-  Route::resource('/challenges', ChallengeController::class);
-  Route::resource('/guidelines', GuidelineController::class);
-  Route::resource('/cases', CaseController::class);
-  Route::resource('/users', UserController::class);
-  Route::resource('/events', EventController::class);
-  Route::post('/events/{event}/toggle-active', [EventController::class, 'toggleActive'])->name('events.toggleActive');
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+    Route::resource('/challenges', ChallengeController::class);
+    Route::resource('/guidelines', GuidelineController::class);
+    Route::resource('/cases', CaseController::class);
+    Route::resource('/users', UserController::class);
+    Route::resource('/events', EventController::class);
+    Route::post('/events/{event}/toggle-active', [EventController::class, 'toggleActive'])->name('events.toggleActive');
 
-  Route::prefix('events/{event}')->as('events.')->group(function () {
-    Route::resource('groups', EventGroupController::class);
-    Route::resource('mentors', EventMentorController::class);
-    Route::resource('investors', EventInvestorController::class);
-    Route::resource('challenges', EventChallengeController::class);
-    Route::resource('guidelines', EventGuidelineController::class);
-    Route::resource('cases', EventCaseController::class);
-  });
+    Route::prefix('events/{event}')->as('events.')->group(function () {
+        Route::resource('groups', EventGroupController::class);
+        Route::resource('mentors', EventMentorController::class);
+        Route::resource('investors', EventInvestorController::class);
+        Route::resource('challenges', EventChallengeController::class);
+        Route::resource('guidelines', EventGuidelineController::class);
+        Route::resource('cases', EventCaseController::class);
+    });
 });
 
 /*
 |--------------------------------------------------------------------------
-| MENTOR & INVESTOR
+| MENTOR ROUTES
 |--------------------------------------------------------------------------
 */
 Route::prefix('mentor')->as('mentor.')->middleware(['auth', 'role:mentor'])->group(function () {
-  Route::get('/dashboard', [MentorDashboardController::class, 'index'])->name('dashboard');
+    // Dashboard Utama (Queue Review)
+    Route::get('/dashboard', [MentorDashboardController::class, 'index'])->name('dashboard');
+
+    // Monitoring Group
+    Route::get('/my-teams', [MentorDashboardController::class, 'myGroups'])->name('groups.index');
+    Route::get('/my-teams/{id}', [MentorDashboardController::class, 'showGroup'])->name('groups.show');
+
+    // Riwayat
+    Route::get('/history', [MentorDashboardController::class, 'history'])->name('history');
+
+    // Actions Approve/Reject
+    Route::post('/submission/{id}/approve', [MentorDashboardController::class, 'approve'])->name('submission.approve');
+    Route::post('/submission/{id}/reject', [MentorDashboardController::class, 'reject'])->name('submission.reject');
 });
+
+/*
+|--------------------------------------------------------------------------
+| INVESTOR ROUTES
+|--------------------------------------------------------------------------
+*/
 Route::prefix('investor')->as('investor.')->middleware(['auth', 'role:investor'])->group(function () {
-  Route::get('/dashboard', [InvestorDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [InvestorDashboardController::class, 'index'])->name('dashboard');
 });
 
 /*
@@ -92,15 +110,6 @@ Route::prefix('investor')->as('investor.')->middleware(['auth', 'role:investor']
 */
 Route::middleware(['auth', 'role:user'])->group(function () {
 
-  // Onboarding Routes
-  Route::get('/onboarding', [OnboardingController::class, 'index'])->name('main.onboarding.index');
-  Route::get('/event/{event}/join', [OnboardingController::class, 'joinEvent'])->name('main.event.join');
-  Route::get('/event/{event}/onboarding', [OnboardingController::class, 'showForm'])->name('main.onboarding.form');
-  Route::post('/event/{event}/onboarding', [OnboardingController::class, 'store'])->name('main.onboarding.store');
-
-  // Main Dashboard & Features
-  Route::middleware(['auth', 'role:user'])->group(function () {
-
     // Onboarding Routes
     Route::get('/onboarding', [OnboardingController::class, 'index'])->name('main.onboarding.index');
     Route::get('/event/{event}/join', [OnboardingController::class, 'joinEvent'])->name('main.event.join');
@@ -108,31 +117,28 @@ Route::middleware(['auth', 'role:user'])->group(function () {
     Route::post('/event/{event}/onboarding', [OnboardingController::class, 'store'])->name('main.onboarding.store');
 
     // Main Dashboard & Features
-    // Perhatikan: prefix 'main' dan as 'main.' sudah ada di sini
     Route::prefix('main')->as('main.')
-      ->middleware([App\Http\Middleware\CheckEventMembership::class])
-      ->group(function () {
+        ->middleware([App\Http\Middleware\CheckEventMembership::class])
+        ->group(function () {
 
-        // Dashboard (Akan menjadi main.dashboard)
-        Route::get('/dashboard', [MainDashboardController::class, 'index'])->name('dashboard');
+            // Dashboard
+            Route::get('/dashboard', [MainDashboardController::class, 'index'])->name('dashboard');
 
-        // Transfer Saldo
-        Route::post('/transfer', [TransactionController::class, 'transfer'])->name('transaction.transfer');
+            // Transfer Saldo
+            Route::post('/transfer', [TransactionController::class, 'transfer'])->name('transaction.transfer');
 
-        // Challenge
-        // HAPUS 'main.' di dalam name(), cukup 'challenges.index'
-        Route::get('/challenges', [MainChallengeController::class, 'index'])->name('challenges.index');
-        Route::post('/challenges/take', [MainChallengeController::class, 'take'])->name('challenges.take');
-        Route::post('/challenges/{submission}/submit', [MainChallengeController::class, 'store'])->name('challenges.store');
+            // Challenge
+            Route::get('/challenges', [MainChallengeController::class, 'index'])->name('challenges.index');
+            Route::post('/challenges/take', [MainChallengeController::class, 'take'])->name('challenges.take');
+            Route::post('/challenges/{submission}/submit', [MainChallengeController::class, 'store'])->name('challenges.store');
 
-        // Cases (PERBAIKAN DI SINI)
-        // HAPUS 'main.' di dalam name(), cukup 'cases.index'
-        Route::get('/cases', [MainCaseController::class, 'index'])->name('cases.index');
-        Route::post('/cases/buy-guideline', [MainCaseController::class, 'buyGuideline'])->name('cases.buyGuideline');
-        Route::post('/cases/{id}/submit', [MainCaseController::class, 'submit'])->name('cases.submit');
+            // Cases
+            Route::get('/cases', [MainCaseController::class, 'index'])->name('cases.index');
+            Route::post('/cases/buy-guideline', [MainCaseController::class, 'buyGuideline'])->name('cases.buyGuideline');
+            Route::post('/cases/{id}/submit', [MainCaseController::class, 'submit'])->name('cases.submit');
 
-        Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard.index');
-        Route::get('/team', [GroupController::class, 'index'])->name('group.index');
-      });
-  });
+            // Lainnya
+            Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard.index');
+            Route::get('/team', [GroupController::class, 'index'])->name('group.index');
+        });
 });
