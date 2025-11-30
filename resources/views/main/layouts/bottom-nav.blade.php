@@ -31,7 +31,7 @@
     </a>
 
     {{-- PHASE 2: CASE (Placeholder) --}}
-    <a href="#" class="phase-item">
+<a href="{{ route('main.cases.index') }}" class="phase-item">
       <i class='bx bx-briefcase-alt-2 phase-icon'></i>
       <span class="phase-title">Cases</span>
       <small class="d-block text-muted" style="font-size: 10px;">Studi Kasus</small>

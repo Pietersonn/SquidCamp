@@ -7,15 +7,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class Cases extends Model
 {
-    use HasFactory;
+  use HasFactory;
 
-    protected $table = 'cases'; // Pastikan tabelnya 'cases'
-    protected $guarded = ['id'];
+  protected $table = 'cases'; // Pastikan tabelnya 'cases'
+  protected $guarded = ['id'];
 
-    // Relasi ke Event
-    public function events()
-    {
-        return $this->belongsToMany(Event::class, 'event_cases', 'case_id', 'event_id')
-                    ->withTimestamps();
-    }
+  // Relasi ke Event
+  public function events()
+  {
+    return $this->belongsToMany(Event::class, 'event_cases', 'case_id', 'event_id')
+      ->withTimestamps();
+  }
 }

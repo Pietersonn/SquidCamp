@@ -13,7 +13,7 @@ class Guideline extends Model
 
     public function events()
     {
-        return $this->belongsToMany(Event::class, 'event_guidelines')
+        return $this->belongsToMany(Event::class, 'event_guidelines', 'guideline_id', 'event_id')
             ->withTimestamps();
     }
 }

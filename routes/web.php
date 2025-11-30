@@ -27,6 +27,7 @@ use App\Http\Controllers\Main\TransactionController;
 use App\Http\Controllers\Main\LeaderboardController;
 use App\Http\Controllers\Main\GroupController;
 use App\Http\Controllers\Main\ChallengeController as MainChallengeController;
+use App\Http\Controllers\Main\CaseController as MainCaseController;
 use App\Http\Controllers\LandingPageController;
 
 /*
@@ -98,22 +99,40 @@ Route::middleware(['auth', 'role:user'])->group(function () {
   Route::post('/event/{event}/onboarding', [OnboardingController::class, 'store'])->name('main.onboarding.store');
 
   // Main Dashboard & Features
-  Route::prefix('main')->as('main.')
-    ->middleware([App\Http\Middleware\CheckEventMembership::class])
-    ->group(function () {
+  Route::middleware(['auth', 'role:user'])->group(function () {
 
-      // Dashboard
-      Route::get('/dashboard', [MainDashboardController::class, 'index'])->name('dashboard');
+    // Onboarding Routes
+    Route::get('/onboarding', [OnboardingController::class, 'index'])->name('main.onboarding.index');
+    Route::get('/event/{event}/join', [OnboardingController::class, 'joinEvent'])->name('main.event.join');
+    Route::get('/event/{event}/onboarding', [OnboardingController::class, 'showForm'])->name('main.onboarding.form');
+    Route::post('/event/{event}/onboarding', [OnboardingController::class, 'store'])->name('main.onboarding.store');
 
-      // Transfer Saldo (INI PENTING)
-      Route::post('/transfer', [TransactionController::class, 'transfer'])->name('transaction.transfer');
+    // Main Dashboard & Features
+    // Perhatikan: prefix 'main' dan as 'main.' sudah ada di sini
+    Route::prefix('main')->as('main.')
+      ->middleware([App\Http\Middleware\CheckEventMembership::class])
+      ->group(function () {
 
-      // Challenge
-      Route::get('/challenges', [MainChallengeController::class, 'index'])->name('challenges.index');
-      Route::post('/challenges/take', [MainChallengeController::class, 'take'])->name('challenges.take');
-      Route::post('/challenges/{submission}/submit', [MainChallengeController::class, 'store'])->name('challenges.store');
+        // Dashboard (Akan menjadi main.dashboard)
+        Route::get('/dashboard', [MainDashboardController::class, 'index'])->name('dashboard');
 
-      Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard.index');
-      Route::get('/team', [GroupController::class, 'index'])->name('group.index'); // Route Baru
-    });
+        // Transfer Saldo
+        Route::post('/transfer', [TransactionController::class, 'transfer'])->name('transaction.transfer');
+
+        // Challenge
+        // HAPUS 'main.' di dalam name(), cukup 'challenges.index'
+        Route::get('/challenges', [MainChallengeController::class, 'index'])->name('challenges.index');
+        Route::post('/challenges/take', [MainChallengeController::class, 'take'])->name('challenges.take');
+        Route::post('/challenges/{submission}/submit', [MainChallengeController::class, 'store'])->name('challenges.store');
+
+        // Cases (PERBAIKAN DI SINI)
+        // HAPUS 'main.' di dalam name(), cukup 'cases.index'
+        Route::get('/cases', [MainCaseController::class, 'index'])->name('cases.index');
+        Route::post('/cases/buy-guideline', [MainCaseController::class, 'buyGuideline'])->name('cases.buyGuideline');
+        Route::post('/cases/{id}/submit', [MainCaseController::class, 'submit'])->name('cases.submit');
+
+        Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard.index');
+        Route::get('/team', [GroupController::class, 'index'])->name('group.index');
+      });
+  });
 });
