@@ -24,6 +24,8 @@ use App\Http\Controllers\Investor\InvestorDashboardController;
 use App\Http\Controllers\Main\MainDashboardController;
 use App\Http\Controllers\Main\OnboardingController;
 use App\Http\Controllers\Main\TransactionController;
+use App\Http\Controllers\Main\LeaderboardController;
+use App\Http\Controllers\Main\GroupController;
 use App\Http\Controllers\Main\ChallengeController as MainChallengeController;
 use App\Http\Controllers\LandingPageController;
 
@@ -32,15 +34,16 @@ use App\Http\Controllers\LandingPageController;
 | PUBLIC & AUTH
 |--------------------------------------------------------------------------
 */
+
 Route::get('/', [LandingPageController::class, 'index'])->name('landing');
 
 Route::middleware('guest')->group(function () {
-    Route::get('/login', [LoginController::class, 'index'])->name('login');
-    Route::post('/login', [LoginController::class, 'login']);
-    Route::get('/register', [RegisterController::class, 'index'])->name('register');
-    Route::post('/register', [RegisterController::class, 'register']);
-    Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect'])->name('auth.google.redirect');
-    Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
+  Route::get('/login', [LoginController::class, 'index'])->name('login');
+  Route::post('/login', [LoginController::class, 'login']);
+  Route::get('/register', [RegisterController::class, 'index'])->name('register');
+  Route::post('/register', [RegisterController::class, 'register']);
+  Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect'])->name('auth.google.redirect');
+  Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
 });
 
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
@@ -51,22 +54,22 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->midd
 |--------------------------------------------------------------------------
 */
 Route::prefix('admin')->as('admin.')->middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
-    Route::resource('/challenges', ChallengeController::class);
-    Route::resource('/guidelines', GuidelineController::class);
-    Route::resource('/cases', CaseController::class);
-    Route::resource('/users', UserController::class);
-    Route::resource('/events', EventController::class);
-    Route::post('/events/{event}/toggle-active', [EventController::class, 'toggleActive'])->name('events.toggleActive');
+  Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+  Route::resource('/challenges', ChallengeController::class);
+  Route::resource('/guidelines', GuidelineController::class);
+  Route::resource('/cases', CaseController::class);
+  Route::resource('/users', UserController::class);
+  Route::resource('/events', EventController::class);
+  Route::post('/events/{event}/toggle-active', [EventController::class, 'toggleActive'])->name('events.toggleActive');
 
-    Route::prefix('events/{event}')->as('events.')->group(function () {
-        Route::resource('groups', EventGroupController::class);
-        Route::resource('mentors', EventMentorController::class);
-        Route::resource('investors', EventInvestorController::class);
-        Route::resource('challenges', EventChallengeController::class);
-        Route::resource('guidelines', EventGuidelineController::class);
-        Route::resource('cases', EventCaseController::class);
-    });
+  Route::prefix('events/{event}')->as('events.')->group(function () {
+    Route::resource('groups', EventGroupController::class);
+    Route::resource('mentors', EventMentorController::class);
+    Route::resource('investors', EventInvestorController::class);
+    Route::resource('challenges', EventChallengeController::class);
+    Route::resource('guidelines', EventGuidelineController::class);
+    Route::resource('cases', EventCaseController::class);
+  });
 });
 
 /*
@@ -75,10 +78,10 @@ Route::prefix('admin')->as('admin.')->middleware(['auth', 'role:admin'])->group(
 |--------------------------------------------------------------------------
 */
 Route::prefix('mentor')->as('mentor.')->middleware(['auth', 'role:mentor'])->group(function () {
-    Route::get('/dashboard', [MentorDashboardController::class, 'index'])->name('dashboard');
+  Route::get('/dashboard', [MentorDashboardController::class, 'index'])->name('dashboard');
 });
 Route::prefix('investor')->as('investor.')->middleware(['auth', 'role:investor'])->group(function () {
-    Route::get('/dashboard', [InvestorDashboardController::class, 'index'])->name('dashboard');
+  Route::get('/dashboard', [InvestorDashboardController::class, 'index'])->name('dashboard');
 });
 
 /*
@@ -88,25 +91,26 @@ Route::prefix('investor')->as('investor.')->middleware(['auth', 'role:investor']
 */
 Route::middleware(['auth', 'role:user'])->group(function () {
 
-    // Onboarding Routes
-    Route::get('/onboarding', [OnboardingController::class, 'index'])->name('main.onboarding.index');
-    Route::get('/event/{event}/join', [OnboardingController::class, 'joinEvent'])->name('main.event.join');
-    Route::get('/event/{event}/onboarding', [OnboardingController::class, 'showForm'])->name('main.onboarding.form');
-    Route::post('/event/{event}/onboarding', [OnboardingController::class, 'store'])->name('main.onboarding.store');
+  // Onboarding Routes
+  Route::get('/onboarding', [OnboardingController::class, 'index'])->name('main.onboarding.index');
+  Route::get('/event/{event}/join', [OnboardingController::class, 'joinEvent'])->name('main.event.join');
+  Route::get('/event/{event}/onboarding', [OnboardingController::class, 'showForm'])->name('main.onboarding.form');
+  Route::post('/event/{event}/onboarding', [OnboardingController::class, 'store'])->name('main.onboarding.store');
 
-    // Main Dashboard & Features
-    Route::prefix('main')->as('main.')
-         ->middleware([App\Http\Middleware\CheckEventMembership::class])
-         ->group(function () {
+  // Main Dashboard & Features
+  Route::prefix('main')->as('main.')
+    ->middleware([App\Http\Middleware\CheckEventMembership::class])
+    ->group(function () {
 
-             // Dashboard
-             Route::get('/dashboard', [MainDashboardController::class, 'index'])->name('dashboard');
+      // Dashboard
+      Route::get('/dashboard', [MainDashboardController::class, 'index'])->name('dashboard');
 
-             // Transfer Saldo (INI PENTING)
-             Route::post('/transfer', [TransactionController::class, 'transfer'])->name('transaction.transfer');
+      // Transfer Saldo (INI PENTING)
+      Route::post('/transfer', [TransactionController::class, 'transfer'])->name('transaction.transfer');
 
-             // Fitur Lain
-             Route::get('/challenges', [MainChallengeController::class, 'index'])->name('challenges.index');
-             Route::get('/leaderboard', function() { return "Leaderboard Page"; })->name('leaderboard.index');
-         });
+      // Fitur Lain
+      Route::get('/challenges', [MainChallengeController::class, 'index'])->name('challenges.index');
+      Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard.index');
+      Route::get('/team', [GroupController::class, 'index'])->name('group.index'); // Route Baru
+    });
 });
