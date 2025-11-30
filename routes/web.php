@@ -108,8 +108,11 @@ Route::middleware(['auth', 'role:user'])->group(function () {
       // Transfer Saldo (INI PENTING)
       Route::post('/transfer', [TransactionController::class, 'transfer'])->name('transaction.transfer');
 
-      // Fitur Lain
+      // Challenge
       Route::get('/challenges', [MainChallengeController::class, 'index'])->name('challenges.index');
+      Route::post('/challenges/take', [MainChallengeController::class, 'take'])->name('challenges.take');
+      Route::post('/challenges/{submission}/submit', [MainChallengeController::class, 'store'])->name('challenges.store');
+
       Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard.index');
       Route::get('/team', [GroupController::class, 'index'])->name('group.index'); // Route Baru
     });

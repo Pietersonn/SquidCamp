@@ -1,3 +1,16 @@
+{{-- FETCH DATA EVENT (Agar bisa diakses global di nav) --}}
+@php
+    // Ambil event aktif untuk pengecekan timer di menu
+    $activeEventNav = \App\Models\Event::where('is_active', true)->first();
+    $cStart = $activeEventNav ? $activeEventNav->challenge_start_time : null;
+    $cEnd   = $activeEventNav ? $activeEventNav->challenge_end_time : null;
+
+    // Konversi ke Timestamp Javascript (Milliseconds)
+    // Carbon::valueOf() return timestamp in ms
+    $jsStart = $cStart ? $cStart->valueOf() : 0;
+    $jsEnd   = $cEnd ? $cEnd->valueOf() : 0;
+@endphp
+
 {{-- 1. BACKDROP GELAP (Muncul saat menu dibuka) --}}
 <div class="menu-backdrop" id="menuBackdrop" onclick="toggleMenu()"></div>
 
@@ -10,7 +23,8 @@
 
   <div class="phase-menu-grid">
     {{-- PHASE 1: CHALLENGE --}}
-    <a href="{{ route('main.challenges.index') }}" class="phase-item">
+    {{-- Tambahkan onclick="checkChallengeAccess(event)" untuk cegah akses jika tutup --}}
+    <a href="{{ route('main.challenges.index') }}" class="phase-item" onclick="checkChallengeAccess(event)">
       <i class='bx bx-joystick phase-icon'></i>
       <span class="phase-title">Challenges</span>
       <small class="d-block text-muted" style="font-size: 10px;">Misi Harian</small>
@@ -44,7 +58,7 @@
       <span>Home</span>
     </a>
 
-    {{-- Leaderboard (Ganti dari Lomba) --}}
+    {{-- Leaderboard --}}
     <a href="{{ route('main.leaderboard.index') }}"
       class="nav-link-item {{ request()->routeIs('main.leaderboard.*') ? 'active' : '' }}">
       <i class='bx bx-bar-chart-alt-2'></i>
@@ -60,10 +74,11 @@
 
   {{-- BAGIAN KANAN --}}
   <div class="nav-section">
-    {{-- Riwayat (History) --}}
-    <a href="#" class="nav-link-item">
-      <i class='bx bx-history'></i>
-      <span>Riwayat</span>
+    {{-- Team / Group (Ganti Riwayat jadi Team karena lebih penting) --}}
+    <a href="{{ route('main.group.index') }}"
+       class="nav-link-item {{ request()->routeIs('main.group.*') ? 'active' : '' }}">
+      <i class='bx bx-group'></i>
+      <span>Tim</span>
     </a>
 
     {{-- Akun --}}
@@ -77,6 +92,63 @@
 
 @push('scripts')
   <script>
+    // --- Logic Validasi Waktu Challenge (Client Side) ---
+    function checkChallengeAccess(e) {
+        // Ambil waktu dari PHP yang sudah di-inject ke Blade
+        const startTime = {{ $jsStart }};
+        const endTime = {{ $jsEnd }};
+
+        // Waktu sekarang di browser user
+        const now = new Date().getTime();
+
+        // 1. Cek jika jadwal belum di set sama sekali
+        if (startTime === 0 || endTime === 0) {
+            e.preventDefault(); // Batalkan pindah halaman
+            Swal.fire({
+                icon: 'warning',
+                title: 'Belum Tersedia',
+                text: 'Jadwal Challenge belum ditentukan oleh panitia.',
+                confirmButtonColor: '#00a79d',
+                customClass: { popup: 'rounded-4' }
+            });
+            return;
+        }
+
+        // 2. Cek jika BELUM mulai (Too Early)
+        if (now < startTime) {
+            e.preventDefault(); // Batalkan pindah halaman
+
+            // Format jam mulai agar user tau kapan harus balik
+            const startDate = new Date(startTime);
+            const hours = String(startDate.getHours()).padStart(2, '0');
+            const minutes = String(startDate.getMinutes()).padStart(2, '0');
+
+            Swal.fire({
+                icon: 'info',
+                title: 'Belum Dibuka',
+                text: `Sabar ya! Challenge baru akan dibuka pukul ${hours}:${minutes}`,
+                confirmButtonColor: '#00a79d',
+                customClass: { popup: 'rounded-4' }
+            });
+            return;
+        }
+
+        // 3. Cek jika SUDAH lewat (Too Late)
+        if (now > endTime) {
+            e.preventDefault(); // Batalkan pindah halaman
+            Swal.fire({
+                icon: 'error',
+                title: 'Ditutup',
+                text: 'Yah, sesi Challenge sudah berakhir.',
+                confirmButtonColor: '#d33',
+                customClass: { popup: 'rounded-4' }
+            });
+            return;
+        }
+
+        // 4. Jika lolos semua, biarkan default action (pindah halaman) terjadi
+    }
+
     // Logic untuk Buka/Tutup Menu Tengah
     function toggleMenu() {
       const overlay = document.getElementById('menuOverlay');
@@ -96,7 +168,7 @@
       }
     }
 
-    // Logic Logout (Sama seperti sebelumnya)
+    // Logic Logout
     function confirmLogout() {
       Swal.fire({
         title: 'Keluar?',

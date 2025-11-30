@@ -14,20 +14,18 @@ return new class extends Migration
         Schema::create('events', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('instansi')->nullable();
             $table->string('banner_image_path')->nullable();
 
-            // ==========================================
-            // == PERUBAHAN DI SINI ==
-            // Kita hanya butuh TANGGAL event (bukan jam)
+            // Hanya tanggal event
             $table->date('event_date')->nullable();
-            // ==========================================
 
-            // 6 Timer ini TETAP ADA untuk setting jam per fase
+            // 3 Fase Timer (Challenge, Case, Show)
             $table->timestamp('challenge_start_time')->nullable();
             $table->timestamp('challenge_end_time')->nullable();
+
             $table->timestamp('case_start_time')->nullable();
             $table->timestamp('case_end_time')->nullable();
+
             $table->timestamp('show_start_time')->nullable();
             $table->timestamp('show_end_time')->nullable();
 

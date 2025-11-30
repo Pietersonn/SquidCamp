@@ -9,116 +9,75 @@ use Illuminate\Support\Facades\Storage;
 
 class ChallengeController extends Controller
 {
-    /**
-     * Menampilkan daftar challenge (Master Data)
-     */
     public function index()
     {
-        $challenges = Challenge::latest()->paginate(10);
+        $challenges = Challenge::latest()->get();
         return view('admin.challenges.index', compact('challenges'));
     }
 
-    /**
-     * Halaman tambah challenge
-     */
     public function create()
     {
         return view('admin.challenges.create');
     }
 
-    /**
-     * Proses simpan challenge baru
-     */
     public function store(Request $request)
     {
         $request->validate([
             'nama' => 'required|string|max:255',
-            // Validasi nominal sesuai value integer dari form (300000, 500000, 700000)
-            'kategori' => 'required|integer|in:300000,500000,700000',
-            'file_pdf' => 'nullable|mimes:pdf|max:5120', // Max 5MB
-            'deskripsi' => 'nullable|string'
+            'price' => 'required|numeric|in:300000,500000,700000', // Validasi Harga
+            'deskripsi' => 'required|string',
+            'file_pdf' => 'nullable|mimes:pdf|max:2048',
         ]);
 
-        $path = null;
+        $data = $request->all();
 
         if ($request->hasFile('file_pdf')) {
-            // Simpan di folder: storage/app/public/challenges
-            $path = $request->file('file_pdf')->store('challenges', 'public');
+            $data['file_pdf'] = $request->file('file_pdf')->store('challenges', 'public');
         }
 
-        Challenge::create([
-            'nama' => $request->nama,
-            'kategori' => $request->kategori,
-            'file_pdf' => $path,
-            'deskripsi' => $request->deskripsi,
-        ]);
+        // Set default kategori jika tidak ada di form (karena kita ganti logika kategori jadi price)
+        $data['kategori'] = 1;
 
-        return redirect()->route('admin.challenges.index')->with('success', 'Challenge berhasil ditambahkan!');
+        Challenge::create($data);
+
+        return redirect()->route('admin.challenges.index')->with('success', 'Challenge berhasil dibuat');
     }
 
-    /**
-     * Halaman edit challenge
-     */
-    public function edit($id)
+    public function edit(Challenge $challenge)
     {
-        $challenge = Challenge::findOrFail($id);
         return view('admin.challenges.edit', compact('challenge'));
     }
 
-    /**
-     * Proses update challenge
-     */
-    public function update(Request $request, $id)
+    public function update(Request $request, Challenge $challenge)
     {
-        $challenge = Challenge::findOrFail($id);
-
         $request->validate([
             'nama' => 'required|string|max:255',
-            'kategori' => 'required|integer|in:300000,500000,700000',
-            'file_pdf' => 'nullable|mimes:pdf|max:5120',
-            'deskripsi' => 'nullable|string'
+            'price' => 'required|numeric|in:300000,500000,700000', // Validasi Harga
+            'deskripsi' => 'required|string',
+            'file_pdf' => 'nullable|mimes:pdf|max:2048',
         ]);
 
-        $path = $challenge->file_pdf;
+        $data = $request->all();
 
         if ($request->hasFile('file_pdf')) {
             // Hapus file lama jika ada
-            if ($path && Storage::disk('public')->exists($path)) {
-                Storage::disk('public')->delete($path);
+            if ($challenge->file_pdf) {
+                Storage::disk('public')->delete($challenge->file_pdf);
             }
-            // Upload file baru
-            $path = $request->file('file_pdf')->store('challenges', 'public');
+            $data['file_pdf'] = $request->file('file_pdf')->store('challenges', 'public');
         }
 
-        $challenge->update([
-            'nama' => $request->nama,
-            'kategori' => $request->kategori,
-            'file_pdf' => $path,
-            'deskripsi' => $request->deskripsi,
-        ]);
+        $challenge->update($data);
 
-        return redirect()->route('admin.challenges.index')->with('success', 'Challenge berhasil diupdate!');
+        return redirect()->route('admin.challenges.index')->with('success', 'Challenge berhasil diperbarui');
     }
 
-    /**
-     * Hapus challenge
-     */
-    public function destroy($id)
+    public function destroy(Challenge $challenge)
     {
-        $challenge = Challenge::findOrFail($id);
-
-        // Hapus file fisik jika ada
-        if ($challenge->file_pdf && Storage::disk('public')->exists($challenge->file_pdf)) {
+        if ($challenge->file_pdf) {
             Storage::disk('public')->delete($challenge->file_pdf);
         }
-
         $challenge->delete();
-
-        // Return JSON untuk AJAX SweetAlert
-        return response()->json([
-            'success' => true,
-            'message' => 'Challenge berhasil dihapus!'
-        ]);
+        return redirect()->route('admin.challenges.index')->with('success', 'Challenge berhasil dihapus');
     }
 }
-

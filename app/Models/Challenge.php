@@ -11,9 +11,16 @@ class Challenge extends Model
 
     protected $guarded = ['id'];
 
+    // Relasi ke Event (Existing)
     public function events()
     {
         return $this->belongsToMany(Event::class, 'event_challenges')
             ->withTimestamps();
+    }
+
+    // Relasi ke Submissions (BARU)
+    public function submissions()
+    {
+        return $this->hasMany(ChallengeSubmission::class);
     }
 }

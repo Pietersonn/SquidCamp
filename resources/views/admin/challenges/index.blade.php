@@ -1,132 +1,100 @@
 @extends('admin.layouts.contentNavbarLayout')
-@section('title', 'Challenge Management')
+
+@section('title', 'Master Data Challenges')
 
 @section('content')
-<div class="container-xxl">
+<div class="container-xxl flex-grow-1 container-p-y">
 
     {{-- Alert Feedback --}}
     @if(session('success'))
-        <div class="alert alert-success mb-3">{{ session('success') }}</div>
+        <div class="alert alert-success alert-dismissible" role="alert">
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
     @endif
 
     <div class="card">
 
+        {{-- Header Card --}}
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Challenge Management</h5>
             <a href="{{ route('admin.challenges.create') }}" class="btn btn-primary">
-                <i class="bx bx-plus"></i> Tambah Challenge
+                <i class="bx bx-plus me-1"></i> Tambah Challenge
             </a>
         </div>
 
+        {{-- Table --}}
         <div class="table-responsive text-nowrap">
             <table class="table table-hover">
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>Nama</th>
-                        <th>Reward / Kategori</th>
-                        <th>PDF</th>
-                        <th>Aksi</th>
+                        <th>Nama Challenge</th>
+                        <th>Tingkat Kesulitan</th>
+                        <th>Deskripsi Singkat</th>
+                        <th class="text-center">PDF</th>
+                        <th class="text-center">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="table-border-bottom-0">
-                    @foreach ($challenges as $c)
-                    <tr id="row-{{ $c->id }}">
+                    @forelse($challenges as $item)
+                    <tr>
                         <td>{{ $loop->iteration }}</td>
-                        <td><strong>{{ $c->nama }}</strong></td>
-
-                        {{-- FORMAT DOLAR --}}
                         <td>
-                            <span class="badge bg-label-success">
-                                ${{ number_format($c->kategori, 0, ',', ',') }}
-                            </span>
+                            <strong class="text-dark">{{ $item->nama }}</strong>
                         </td>
-
                         <td>
-                            @if ($c->file_pdf)
-                                <a href="{{ asset('storage/'.$c->file_pdf) }}"
-                                   target="_blank"
-                                   class="btn btn-sm btn-icon btn-outline-info" title="Lihat PDF">
-                                    <i class="bx bx-file"></i>
-                                </a>
+                            @if($item->price == 300000)
+                                <span class="badge bg-label-success">Easy (300K)</span>
+                            @elseif($item->price == 500000)
+                                <span class="badge bg-label-warning">Medium (500K)</span>
+                            @elseif($item->price == 700000)
+                                <span class="badge bg-label-danger">Hard (700K)</span>
                             @else
-                                <span class="text-muted">-</span>
+                                <span class="badge bg-label-secondary">{{ number_format($item->price) }}</span>
                             @endif
                         </td>
                         <td>
-                            <a href="{{ route('admin.challenges.edit', $c->id) }}" class="btn btn-sm btn-warning">
-                                <i class="bx bx-edit-alt"></i>
-                            </a>
+                            <span class="d-inline-block text-truncate text-muted" style="max-width: 200px;" title="{{ $item->deskripsi }}">
+                                {{ $item->deskripsi }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            @if($item->file_pdf)
+                                <a href="{{ asset('storage/'.$item->file_pdf) }}" target="_blank" class="btn btn-icon btn-sm btn-outline-info" title="Lihat PDF">
+                                    <i class="bx bxs-file-pdf"></i>
+                                </a>
+                            @else
+                                <span class="text-muted small">-</span>
+                            @endif
+                        </td>
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center gap-2">
+                                {{-- Tombol Edit --}}
+                                <a href="{{ route('admin.challenges.edit', $item->id) }}" class="btn btn-sm btn-warning">
+                                    <i class="bx bx-edit-alt"></i>
+                                </a>
 
-                            <button class="btn btn-sm btn-danger btn-delete"
-                                    data-id="{{ $c->id }}"
-                                    data-url="{{ route('admin.challenges.destroy', $c->id) }}">
-                                <i class="bx bx-trash"></i>
-                            </button>
+                                {{-- Tombol Hapus --}}
+                                <form action="{{ route('admin.challenges.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Hapus data ini?');">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-danger">
+                                        <i class="bx bx-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
-                    @endforeach
+                    @empty
+                    <tr>
+                        <td colspan="6" class="text-center py-4">
+                            <span class="text-muted">Belum ada data challenge.</span>
+                        </td>
+                    </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
-
-        <div class="p-3">
-            {{ $challenges->links() }}
-        </div>
-
     </div>
-
 </div>
-@endsection
-
-@section('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const csrf = '{{ csrf_token() }}';
-
-    document.querySelectorAll('.btn-delete').forEach(btn => {
-        btn.addEventListener('click', function () {
-            const id = this.dataset.id;
-            const url = this.dataset.url;
-
-            Swal.fire({
-                title: 'Hapus challenge?',
-                text: "Data tidak bisa dikembalikan!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Ya, hapus',
-                cancelButtonText: 'Batal',
-                customClass: {
-                    confirmButton: 'btn btn-danger me-3',
-                    cancelButton: 'btn btn-secondary'
-                },
-                buttonsStyling: false
-            }).then(result => {
-                if (result.isConfirmed) {
-                    fetch(url, {
-                        method: 'DELETE',
-                        headers: {
-                            'X-CSRF-TOKEN': csrf,
-                            'Accept': 'application/json'
-                        }
-                    })
-                    .then(r => r.json())
-                    .then(data => {
-                        if (data.success) {
-                            document.getElementById('row-' + id).remove();
-                            Swal.fire('Terhapus!', data.message, 'success');
-                        } else {
-                             Swal.fire('Gagal!', 'Terjadi kesalahan saat menghapus.', 'error');
-                        }
-                    })
-                    .catch(err => {
-                         console.error(err);
-                         Swal.fire('Error!', 'Terjadi kesalahan jaringan.', 'error');
-                    });
-                }
-            });
-        });
-    });
-});
-</script>
 @endsection

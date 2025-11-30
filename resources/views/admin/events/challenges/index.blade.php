@@ -68,12 +68,14 @@
 </div>
 
 <div class="row g-4">
-  @forelse ($selected_challenges as $challenge)
+  {{-- PERBAIKAN: Mengganti $selected_challenges menjadi $challenges --}}
+  @forelse ($challenges as $challenge)
     <div class="col-md-6 col-lg-4">
       <div class="card challenge-card h-100">
 
         <span class="reward-badge">
-            ${{ number_format($challenge->kategori, 0, ',', '.') }}
+            {{-- Menggunakan 'price' sesuai kolom database terbaru, fallback ke kategori jika null --}}
+            ${{ number_format($challenge->price ?? $challenge->kategori, 0, ',', '.') }}
         </span>
 
         <div class="visual-header">
@@ -98,14 +100,17 @@
         </div>
 
         <div class="card-footer bg-white border-top d-flex justify-content-between align-items-center py-3">
-            <form action="{{ route('admin.events.challenges.destroy', ['event' => $event->id, 'challenge' => $challenge->id]) }}" method="POST" onsubmit="return confirm('Hapus challenge ini?');" class="d-inline">
+            {{-- Form Delete (Detach dari Event) --}}
+            <form action="{{ route('admin.events.challenges.destroy', ['event' => $event->id, 'challenge' => $challenge->id]) }}" method="POST" onsubmit="return confirm('Hapus challenge ini dari event?');" class="d-inline">
                 @csrf @method('DELETE')
                 <button type="submit" class="btn btn-sm text-danger fw-bold p-0 border-0 bg-transparent">
                     <i class="bx bx-trash me-1"></i> Remove
                 </button>
             </form>
-            <a href="{{ route('admin.events.challenges.edit', ['event' => $event->id, 'challenge' => $challenge->id]) }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
-                Ganti <i class="bx bx-refresh ms-1"></i>
+
+            {{-- Edit mengarah ke Master Data Challenge --}}
+            <a href="{{ route('admin.challenges.edit', $challenge->id) }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                Edit Master <i class="bx bx-edit ms-1"></i>
             </a>
         </div>
       </div>
@@ -113,7 +118,8 @@
   @empty
     <div class="col-12 text-center py-5">
         <div class="badge p-4 rounded-circle mb-3" style="background-color: #e0f2f1; color: #00a79d;"><i class="bx bx-joystick fs-1"></i></div>
-        <h4 class="text-muted">Belum ada Challenge</h4>
+        <h4 class="text-muted">Belum ada Challenge di Event ini</h4>
+        <p class="text-muted mb-4">Tambahkan challenge dari master data untuk memulai.</p>
         <a href="{{ route('admin.events.challenges.create', $event->id) }}" class="btn btn-primary" style="background-color: #00a79d; border:none;">Pilih Challenge</a>
     </div>
   @endforelse
