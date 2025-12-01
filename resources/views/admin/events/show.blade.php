@@ -506,9 +506,17 @@
                       <small class="text-muted" style="font-size: 0.7rem;">{{ $group->members_count }} Members</small>
                     </div>
                   </div>
-                  <span class="badge bg-label-success fw-bold">
-                    ${{ number_format($group->squid_dollar, 0, ',', '.') }}
-                  </span>
+
+                  {{-- UPDATED: Menampilkan TOTAL WEALTH --}}
+                  <div class="text-end">
+                      <span class="badge bg-label-success fw-bold">
+                        ${{ number_format($group->total_wealth, 0, ',', '.') }}
+                      </span>
+                      <div class="text-muted small" style="font-size: 0.6rem; line-height: 1.1; margin-top: 2px;">
+                          Bank: {{ number_format($group->squid_dollar) }}<br>
+                          Cash: {{ number_format($group->bank_balance) }}
+                      </div>
+                  </div>
                 </div>
               @endforeach
             </div>

@@ -12,18 +12,17 @@ use App\Models\Transaction;
 
 class TransactionController extends Controller
 {
+  // 1. TRANSFER ANTAR KELOMPOK (Masih Pakai SweetAlert)
   public function transfer(Request $request)
   {
-    // 1. Validasi Input
     $request->validate([
       'to_group_id' => 'required|exists:groups,id',
       'amount' => 'required|numeric|min:1000',
     ]);
 
     $user = Auth::user();
-    $amount = (int) $request->amount; // Pastikan jadi integer
+    $amount = (int) $request->amount;
 
-    // 2. Ambil Data Pengirim
     $senderMembership = GroupMember::where('user_id', $user->id)
       ->whereHas('event', function ($q) {
         $q->where('is_active', true);
@@ -34,33 +33,28 @@ class TransactionController extends Controller
       return back()->with('error', 'Anda tidak tergabung dalam tim aktif.');
     }
 
-    // 3. Lock Database untuk mencegah saldo minus saat banyak transaksi bersamaan
     DB::beginTransaction();
     try {
-      // Ambil data terbaru dengan lockForUpdate
       $senderGroup = Group::where('id', $senderMembership->group_id)->lockForUpdate()->first();
       $receiverGroup = Group::where('id', $request->to_group_id)->lockForUpdate()->first();
 
-      // Validasi Transfer ke Diri Sendiri
       if ($senderGroup->id == $receiverGroup->id) {
         DB::rollBack();
         return back()->with('error', 'Tidak bisa transfer ke tim sendiri.');
       }
 
-      // Validasi Saldo Cukup
-      if ($senderGroup->squid_dollar < $amount) {
+      // Cek Saldo CASH (bank_balance)
+      if ($senderGroup->bank_balance < $amount) {
         DB::rollBack();
-        return back()->with('error', 'Saldo tim tidak cukup!');
+        return back()->with('error', 'Saldo Cash (Dompet) tidak cukup! Silakan tarik uang dari Bank dulu.');
       }
 
-      // 4. Proses Pindah Saldo (Manual Calculation agar lebih akurat)
-      $senderGroup->squid_dollar -= $amount;
+      $senderGroup->bank_balance -= $amount;
       $senderGroup->save();
 
-      $receiverGroup->squid_dollar += $amount;
+      $receiverGroup->bank_balance += $amount;
       $receiverGroup->save();
 
-      // 5. Catat Riwayat
       Transaction::create([
         'event_id' => $senderMembership->event_id,
         'from_type' => 'group',
@@ -74,14 +68,15 @@ class TransactionController extends Controller
 
       DB::commit();
 
+      // Transfer tetap pakai notifikasi Success biasa
       return back()->with('success', 'Berhasil transfer SQ$ ' . number_format($amount) . ' ke ' . $receiverGroup->name);
     } catch (\Exception $e) {
       DB::rollBack();
       return back()->with('error', 'Gagal transfer: ' . $e->getMessage());
     }
   }
-  // app/Http/Controllers/Main/TransactionController.php
 
+  // 2. TARIK TUNAI DARI BANK (Tanpa SweetAlert, Hanya Struk)
   public function withdrawFromBank(Request $request)
   {
     $request->validate([
@@ -95,25 +90,27 @@ class TransactionController extends Controller
 
     $group = Group::find($membership->group_id);
 
-    // LOGIC DIBALIK: Cek Saldo Bank (Tabungan)
-    if ($group->bank_balance < $request->amount) {
-      return back()->with('error', 'Saldo di Bank tidak mencukupi untuk ditarik!');
+    // Cek Saldo BANK (squid_dollar)
+    if ($group->squid_dollar < $request->amount) {
+      return back()->with('error', 'Saldo di Squid Bank tidak mencukupi!');
     }
 
-    DB::transaction(function () use ($group, $request) {
-      // 1. Kurangi Bank Balance
-      $group->bank_balance -= $request->amount;
+    // Gunakan variabel untuk menangkap hasil return transaction
+    $transaction = DB::transaction(function () use ($group, $request) {
+      // 1. Kurangi Saldo BANK
+      $group->squid_dollar -= $request->amount;
 
-      // 2. Tambah ke Cash (Dompet)
-      $group->squid_dollar += $request->amount;
+      // 2. Tambah ke DOMPET CASH
+      $group->bank_balance += $request->amount;
+
       $group->save();
 
-      // 3. Catat Riwayat Transaksi
-      Transaction::create([
+      // 3. Buat Transaksi dan RETURN modelnya agar bisa dipakai di bawah
+      return Transaction::create([
         'event_id' => $group->event_id,
-        'from_type' => 'bank', // DARI BANK
+        'from_type' => 'bank',
         'from_id' => 0,
-        'to_type' => 'group',  // KE GROUP (Cash)
+        'to_type' => 'group',
         'to_id' => $group->id,
         'amount' => $request->amount,
         'reason' => 'BANK_WITHDRAWAL',
@@ -121,6 +118,33 @@ class TransactionController extends Controller
       ]);
     });
 
-    return back()->with('success', 'Berhasil menarik uang ke Dompet Cash!');
+    // HANYA kirim data 'withdrawal_receipt'.
+    // Tidak mengirim 'success', jadi SweetAlert tidak akan muncul.
+    return back()->with('withdrawal_receipt', [
+      'trx_id' => 'TRX-' . str_pad($transaction->id, 6, '0', STR_PAD_LEFT),
+      'date' => $transaction->created_at->format('d M Y, H:i'),
+      'amount' => $transaction->amount,
+      'balance_bank' => $group->squid_dollar,
+      'balance_cash' => $group->bank_balance,
+    ]);
+  }
+
+  public function history()
+  {
+    $user = Auth::user();
+    $membership = GroupMember::where('user_id', $user->id)->first();
+
+    if (!$membership) {
+      return redirect()->route('main.dashboard');
+    }
+
+    $group = Group::find($membership->group_id);
+
+    // Ambil transaksi dimana Group ini sebagai PENGIRIM atau PENERIMA
+    $transactions = Transaction::where(function ($q) use ($group) {
+      $q->where('from_type', 'group')->where('from_id', $group->id);})->orWhere(function ($q) use ($group) {
+      $q->where('to_type', 'group')->where('to_id', $group->id);})->orderBy('created_at', 'desc')->get();
+
+    return view('main.history.index', compact('transactions', 'group'));
   }
 }

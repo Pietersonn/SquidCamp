@@ -53,12 +53,13 @@
     .rank-info { flex-grow: 1; }
     .rank-info h6 { margin: 0; font-weight: 700; color: #333; font-size: 0.95rem; }
 
-    /* MONEY */
+    /* MONEY BADGE */
     .rank-money {
         background-color: #e0f2f1; color: #00a79d;
         font-weight: 800; padding: 6px 12px;
         border-radius: 20px; font-size: 0.8rem;
         min-width: 80px; text-align: center;
+        display: inline-block;
     }
 
     /* HIGHLIGHT MY TEAM */
@@ -74,6 +75,9 @@
 <div class="rank-header">
     <h4 class="fw-bold text-white mb-1">Papan Peringkat</h4>
     <p class="text-white opacity-75 small mb-0">Top Groups - {{ $event->name }}</p>
+    <div class="mt-2 badge bg-white text-primary bg-opacity-25 rounded-pill px-3">
+        <i class='bx bxs-trophy'></i> Total Aset (Cash + Bank)
+    </div>
 </div>
 
 <div class="container px-3 pb-5" style="margin-top: -20px;">
@@ -85,21 +89,37 @@
 
         @forelse($allRanks as $index => $grp)
             <div class="rank-item {{ $grp->id == $myGroupId ? 'my-team-row' : '' }}">
+                {{-- Nomor Peringkat --}}
                 <div class="rank-number">#{{ $index + 1 }}</div>
+
+                {{-- Nama Tim --}}
                 <div class="rank-info">
                     <h6>
                         {{ $grp->name }}
                         @if($grp->id == $myGroupId)
-                            <i class='bx bxs-user-circle ms-1 text-primary'></i>
+                            <small class="text-primary ms-1" style="font-size: 0.7rem;">(Saya)</small>
                         @endif
                     </h6>
+                    {{-- Rincian Cash & Bank Kecil --}}
+                    <div style="font-size: 0.65rem; color: #888; margin-top: 2px;">
+                        <span class="me-2"><i class='bx bxs-bank'></i> Bank: {{ number_format($grp->squid_dollar ?? 0) }}</span>
+                        <span><i class='bx bx-wallet'></i> Cash: {{ number_format($grp->bank_balance ?? 0) }}</span>
+                    </div>
                 </div>
-                <div class="rank-money">
-                    ${{ number_format($grp->squid_dollar/1000, 0) }}K
+
+                {{-- Total Kekayaan --}}
+                <div class="text-end">
+                    <div class="rank-money">
+                        {{-- Menggunakan total_wealth --}}
+                        $ {{ number_format($grp->total_wealth ?? 0) }}
+                    </div>
                 </div>
             </div>
         @empty
-            <div class="text-center py-4 text-muted">Belum ada data.</div>
+            <div class="text-center py-4 text-muted">
+                <i class='bx bx-ghost fs-1 mb-2 opacity-50'></i>
+                <p>Belum ada data peringkat.</p>
+            </div>
         @endforelse
     </div>
 </div>

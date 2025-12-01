@@ -8,12 +8,12 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
-// Models
 use App\Models\Event;
 use App\Models\GroupMember;
 use App\Models\Cases;
 use App\Models\Guideline;
 use App\Models\Transaction;
+use App\Models\Group;
 
 class CaseController extends Controller
 {
@@ -21,6 +21,7 @@ class CaseController extends Controller
   {
     $user = Auth::user();
 
+    // 1. Cek Event & Membership
     $event = Event::where('is_active', true)->firstOrFail();
     $membership = GroupMember::where('user_id', $user->id)
       ->where('event_id', $event->id)
@@ -28,7 +29,7 @@ class CaseController extends Controller
       ->firstOrFail();
     $group = $membership->group;
 
-    // Cek Timer
+    // 2. Cek Timer Cases
     $now = Carbon::now();
     $isOpened = false;
 
@@ -38,7 +39,7 @@ class CaseController extends Controller
       $isOpened = $now->between($start, $end);
     }
 
-    // Ambil Cases Event
+    // 3. Ambil Daftar Kasus
     $cases = Cases::whereHas('events', function ($q) use ($event) {
       $q->where('events.id', $event->id);
     })->get();
@@ -51,101 +52,128 @@ class CaseController extends Controller
       $case->my_submission = $submission;
     }
 
-    // Logic Gacha Guideline
-    $totalGuidelines = Guideline::whereHas('events', function ($q) use ($event) {
-      $q->where('events.id', $event->id);
-    })->count();
+    // 4. LOGIC TOKO GUIDELINE (UPDATED: STOK LIMIT)
+    $allGuidelines = Guideline::whereHas('events', function ($q) use ($event) {
+        $q->where('events.id', $event->id);
+    })->get();
 
-    $myGuidelines = DB::table('group_guidelines')
-      ->join('guidelines', 'group_guidelines.guideline_id', '=', 'guidelines.id')
-      ->where('group_guidelines.group_id', $group->id)
-      ->select('guidelines.*')
-      ->get();
+    $ownedGuidelineIds = DB::table('group_guidelines')
+        ->where('group_id', $group->id)
+        ->pluck('guideline_id')
+        ->toArray();
 
-    $ownedCount = $myGuidelines->count();
-    $gachaPrice = 500000;
+    // Loop untuk cek status kepemilikan DAN STOK
+    $allGuidelines->each(function($gl) use ($ownedGuidelineIds, $event) {
+        $gl->is_owned = in_array($gl->id, $ownedGuidelineIds);
+
+        // HITUNG STOK (Total pembelian global untuk item ini di event ini)
+        $soldCount = DB::table('group_guidelines')
+            ->where('event_id', $event->id)
+            ->where('guideline_id', $gl->id)
+            ->count();
+
+        // Stok Tersedia = Batas (5) - Terjual
+        $gl->stock = max(0, 5 - $soldCount);
+    });
+
+    $myGuidelines = $allGuidelines->where('is_owned', true);
 
     return view('main.cases.index', compact(
-      'event',
-      'group',
-      'isOpened',
-      'cases',
-      'myGuidelines',
-      'totalGuidelines',
-      'ownedCount',
-      'gachaPrice'
+      'event', 'group', 'isOpened', 'cases', 'allGuidelines', 'myGuidelines'
     ));
   }
 
-  // Logic Beli Guideline (Gacha)
+  // LOGIC BELI DENGAN LIMIT STOK
   public function buyGuideline(Request $request)
   {
+    $request->validate([
+        'guideline_id' => 'required|exists:guidelines,id'
+    ]);
+
     $user = Auth::user();
     $event = Event::where('is_active', true)->firstOrFail();
     $membership = GroupMember::where('user_id', $user->id)->where('event_id', $event->id)->firstOrFail();
     $group = $membership->group;
 
-    $gachaPrice = 150000;
+    // 1. Ambil Data Guideline
+    $guideline = Guideline::find($request->guideline_id);
+    $price = $guideline->price;
 
-    if ($group->squid_dollar < $gachaPrice) {
-      return back()->with('error', 'Saldo tidak cukup!');
+    // 2. CEK STOK (CRITICAL STEP)
+    $soldCount = DB::table('group_guidelines')
+        ->where('event_id', $event->id)
+        ->where('guideline_id', $guideline->id)
+        ->count();
+
+    if ($soldCount >= 5) {
+        return back()->with('error', 'Gagal! Dokumen ini sudah habis terjual (Sold Out).');
     }
 
-    // Cari yang belum dimiliki
-    $ownedIds = DB::table('group_guidelines')
-      ->where('group_id', $group->id)
-      ->pluck('guideline_id');
-
-    $randomGuideline = Guideline::whereHas('events', function ($q) use ($event) {
-      $q->where('events.id', $event->id);
-    })
-      ->whereNotIn('id', $ownedIds)
-      ->inRandomOrder()
-      ->first();
-
-    if (!$randomGuideline) {
-      return back()->with('error', 'Semua guideline sudah terbeli!');
+    // 3. Cek Saldo CASH
+    if ($group->bank_balance < $price) {
+      return back()->with('error', 'Saldo Cash tidak mencukupi! ($'.number_format($price).')');
     }
 
-    DB::transaction(function () use ($group, $event, $randomGuideline, $gachaPrice) {
+    // 4. Cek Kepemilikan
+    $alreadyOwn = DB::table('group_guidelines')
+        ->where('group_id', $group->id)
+        ->where('guideline_id', $guideline->id)
+        ->exists();
 
-      // Kurangi saldo kelompok
-      $group->decrement('squid_dollar', $gachaPrice);
+    if ($alreadyOwn) {
+        return back()->with('error', 'Tim kamu sudah memiliki dokumen ini!');
+    }
 
-      // Tambahkan guideline
+    // 5. Proses Transaksi
+    DB::transaction(function () use ($group, $event, $guideline, $price) {
+      // Double Check Stok di dalam transaksi (untuk mencegah race condition)
+      $currentSold = DB::table('group_guidelines')
+          ->where('event_id', $event->id)
+          ->where('guideline_id', $guideline->id)
+          ->lockForUpdate() // Lock baris agar aman
+          ->count();
+
+      if ($currentSold >= 5) {
+          throw new \Exception('Stok habis saat proses transaksi.');
+      }
+
+      // Kurangi Saldo Cash
+      $group->decrement('bank_balance', $price);
+
+      // Masukkan ke Inventory
       DB::table('group_guidelines')->insert([
         'event_id' => $event->id,
         'group_id' => $group->id,
-        'guideline_id' => $randomGuideline->id,
-        'price_paid' => $gachaPrice,
+        'guideline_id' => $guideline->id,
+        'price_paid' => $price,
         'created_at' => now(),
         'updated_at' => now(),
       ]);
 
-      // Catat transaksi
+      // Catat Riwayat
       Transaction::create([
         'event_id' => $event->id,
         'from_type' => 'group',
         'from_id' => $group->id,
         'to_type' => 'system',
         'to_id' => 0,
-        'amount' => $gachaPrice,
+        'amount' => $price,
         'reason' => 'BUY_GUIDELINE',
+        'description' => 'Membeli Dokumen Rahasia ('.$guideline->title.')'
       ]);
     });
 
-    return back()->with('success', 'Guideline berhasil dibeli!');
+    return back()->with('success', 'Berhasil membeli dokumen!');
   }
 
-  // Logic Submit dengan Race Condition Lock
+  // Logic Submit (Tetap Sama)
   public function submit(Request $request, $caseId)
   {
     $request->validate([
       'submission_text' => 'nullable|url',
-      'submission_file' => 'nullable|file|mimes:pdf,doc,docx,zip,rar,png,jpg,jpeg|max:20480', // Max 20MB
+      'submission_file' => 'nullable|file|mimes:pdf,doc,docx,zip,rar,png,jpg,jpeg|max:20480',
     ]);
 
-    // Cek manual apakah setidaknya satu input terisi
     if (!$request->submission_text && !$request->hasFile('submission_file')) {
       return back()->with('error', 'Mohon lampirkan Link Jawaban atau Upload File.');
     }
@@ -164,26 +192,16 @@ class CaseController extends Controller
       return back()->with('error', 'Kasus ini sudah disubmit sebelumnya.');
     }
 
-    // --- PERUBAHAN DI SINI (RENAME FILE) ---
     $filePath = null;
     if ($request->hasFile('submission_file')) {
       $file = $request->file('submission_file');
       $extension = $file->getClientOriginalExtension();
-
-      // Bersihkan nama group (ganti spasi jadi strip, hapus karakter aneh)
       $safeGroupName = \Illuminate\Support\Str::slug($group->name);
-
-      // Format Nama: NamaGroup_Case-ID.ext (Contoh: Tim-Alpha_Case-1.pdf)
       $fileName = "{$safeGroupName}_Case-{$caseId}.{$extension}";
-
-      // Simpan dengan nama baru
       $filePath = $file->storeAs('submissions', $fileName, 'public');
     }
-    // ---------------------------------------
 
     DB::transaction(function () use ($request, $event, $group, $caseId, $user, $filePath) {
-
-      // Lock row count untuk ranking
       $count = DB::table('case_submissions')
         ->where('event_id', $event->id)
         ->where('case_id', $caseId)
@@ -192,31 +210,27 @@ class CaseController extends Controller
 
       $rank = $count + 1;
 
-      // Reward Logic (Bisa disesuaikan)
       if ($rank == 1) $reward = 500000;
       elseif ($rank == 2) $reward = 450000;
       elseif ($rank == 3) $reward = 400000;
       elseif ($rank >= 4 && $rank <= 10) $reward = 300000;
       else $reward = 100000;
 
-      // Simpan submission
       DB::table('case_submissions')->insert([
         'event_id' => $event->id,
         'group_id' => $group->id,
         'case_id' => $caseId,
         'user_id' => $user->id,
-        'submission_text' => $request->submission_text, // Link
-        'file_path' => $filePath,                       // Path File
+        'submission_text' => $request->submission_text,
+        'file_path' => $filePath,
         'rank' => $rank,
         'reward_amount' => $reward,
         'created_at' => now(),
         'updated_at' => now(),
       ]);
 
-      // Tambah saldo grup
       $group->increment('squid_dollar', $reward);
 
-      // Log transaksi reward
       Transaction::create([
         'event_id' => $event->id,
         'from_type' => 'system',
@@ -225,6 +239,7 @@ class CaseController extends Controller
         'to_id' => $group->id,
         'amount' => $reward,
         'reason' => 'CASE_REWARD',
+        'description' => 'Reward Case #' . $caseId . ' (Rank ' . $rank . ')',
       ]);
     });
 
