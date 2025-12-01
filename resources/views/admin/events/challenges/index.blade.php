@@ -1,127 +1,183 @@
 @extends('admin.layouts.contentNavbarLayout')
 
-@section('title', "Event Challenges - $event->name")
+@section('title', 'Kelola Challenge Event')
 
 @section('styles')
 <style>
-    .challenge-card {
-        border-radius: 15px;
-        border: none;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
-        transition: 0.3s;
+    :root {
+        --squid-primary: #00a79d;
+        --squid-secondary: #00d2c6;
+    }
+    /* --- HERO HEADER --- */
+    .header-event-challenge {
+        background: linear-gradient(135deg, #00a79d 0%, #00796b 100%);
+        border-radius: 16px;
+        padding: 30px;
+        color: white;
+        box-shadow: 0 10px 20px rgba(0, 167, 157, 0.2);
+        margin-bottom: 30px;
+        position: relative;
         overflow: hidden;
     }
-    .challenge-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 30px rgba(0, 167, 157, 0.15);
+    .header-decoration {
+        position: absolute;
+        top: -20px;
+        right: -20px;
+        font-size: 10rem;
+        opacity: 0.1;
+        color: white;
+        transform: rotate(-15deg);
     }
-    .visual-header {
-        height: 180px;
-        background: #f2fcfb; /* Light Teal Background */
-        display: flex;
-        align-items: center;
-        justify-content: center;
+
+    /* --- TABLE STYLES --- */
+    .table-card {
+        border-radius: 16px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        border: none;
+        overflow: hidden;
+    }
+    .table-header-row th {
+        background-color: #f8f9fa !important;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        border-bottom: 2px solid #eee;
+        color: #666;
+    }
+    .challenge-row {
+        transition: all 0.2s ease;
+    }
+    .challenge-row:hover {
+        background-color: #f0fdfa !important;
+        transform: scale(1.005);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        z-index: 10;
         position: relative;
     }
-    .visual-header i {
-        font-size: 6rem;
-        color: #00a79d;
-        opacity: 0.8;
+
+    /* --- BADGES --- */
+    .price-tag {
+        background: rgba(0, 167, 157, 0.1);
+        color: var(--squid-primary);
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        border: 1px solid rgba(0, 167, 157, 0.2);
+    }
+    .action-btn {
+        width: 35px; height: 35px;
+        display: inline-flex; align-items: center; justify-content: center;
+        border-radius: 50%;
         transition: 0.3s;
-    }
-    .challenge-card:hover .visual-header i {
-        transform: scale(1.1) rotate(-10deg);
-    }
-    .reward-badge {
-        position: absolute;
-        top: 15px;
-        right: 15px;
-        background: #00a79d;
-        color: white;
-        font-weight: bold;
-        padding: 8px 15px;
-        border-radius: 30px;
-        box-shadow: 0 4px 10px rgba(0, 167, 157, 0.3);
-    }
-    .btn-action-squid {
-        color: #00a79d;
-        background: #e0f2f1;
+        color: #ff3e1d;
+        background: rgba(255, 62, 29, 0.1);
         border: none;
     }
-    .btn-action-squid:hover {
-        background: #00a79d;
+    .action-btn:hover {
+        background: #ff3e1d;
         color: white;
+        box-shadow: 0 4px 10px rgba(255, 62, 29, 0.3);
     }
 </style>
 @endsection
 
 @section('content')
+<div class="container-xxl flex-grow-1 container-p-y">
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h4 class="fw-bold mb-1" style="color: #008f85;"><i class="bx bx-joystick me-2"></i>Challenges</h4>
-        <span class="text-muted">Event: {{ $event->name }}</span>
-    </div>
-    <a href="{{ route('admin.events.challenges.create', $event->id) }}" class="btn btn-primary" style="background-color: #00a79d; border:none;">
-        <i class="bx bx-plus me-1"></i> Pilih Challenge
-    </a>
-</div>
-
-<div class="row g-4">
-  {{-- PERBAIKAN: Mengganti $selected_challenges menjadi $challenges --}}
-  @forelse ($challenges as $challenge)
-    <div class="col-md-6 col-lg-4">
-      <div class="card challenge-card h-100">
-
-        <span class="reward-badge">
-            {{-- Menggunakan 'price' sesuai kolom database terbaru, fallback ke kategori jika null --}}
-            ${{ number_format($challenge->price ?? $challenge->kategori, 0, ',', '.') }}
-        </span>
-
-        <div class="visual-header">
-            <i class="bx bx-trophy"></i>
+    {{-- 1. HERO HEADER --}}
+    <div class="header-event-challenge d-flex justify-content-between align-items-center">
+        <div style="position: relative; z-index: 2;">
+            <h3 class="fw-bold mb-1 text-white"><i class='bx bx-joystick me-2'></i> Event Challenges</h3>
+            <p class="mb-0 opacity-75">Kelola misi untuk event: <strong>{{ $event->name }}</strong></p>
         </div>
-
-        <div class="card-body d-flex flex-column">
-            <h5 class="card-title fw-bold mb-2 text-dark">{{ $challenge->nama }}</h5>
-            <p class="card-text text-muted small mb-4 flex-grow-1">
-                {{ Str::limit($challenge->deskripsi, 90) ?? 'Tidak ada deskripsi.' }}
-            </p>
-
-            <div class="d-grid gap-2">
-                @if($challenge->file_pdf)
-                    <a href="{{ asset('storage/'.$challenge->file_pdf) }}" target="_blank" class="btn btn-action-squid btn-sm">
-                        <i class="bx bx-file me-1"></i> Lihat Instruksi
-                    </a>
-                @else
-                    <button class="btn btn-light btn-sm text-muted" disabled><i class="bx bx-x-circle"></i> No File</button>
-                @endif
-            </div>
-        </div>
-
-        <div class="card-footer bg-white border-top d-flex justify-content-between align-items-center py-3">
-            {{-- Form Delete (Detach dari Event) --}}
-            <form action="{{ route('admin.events.challenges.destroy', ['event' => $event->id, 'challenge' => $challenge->id]) }}" method="POST" onsubmit="return confirm('Hapus challenge ini dari event?');" class="d-inline">
-                @csrf @method('DELETE')
-                <button type="submit" class="btn btn-sm text-danger fw-bold p-0 border-0 bg-transparent">
-                    <i class="bx bx-trash me-1"></i> Remove
-                </button>
-            </form>
-
-            {{-- Edit mengarah ke Master Data Challenge --}}
-            <a href="{{ route('admin.challenges.edit', $challenge->id) }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
-                Edit Master <i class="bx bx-edit ms-1"></i>
+        <div style="position: relative; z-index: 2; display: flex; gap: 10px;">
+            <a href="{{ route('admin.events.show', $event->id) }}" class="btn btn-outline-light fw-bold shadow-sm">
+                <i class="bx bx-arrow-back me-1"></i> Kembali
+            </a>
+            <a href="{{ route('admin.events.challenges.create', $event->id) }}" class="btn btn-light text-primary fw-bold shadow-sm">
+                <i class="bx bx-plus-circle me-1"></i> Tambah Challenge
             </a>
         </div>
-      </div>
+        <i class='bx bx-game header-decoration'></i>
     </div>
-  @empty
-    <div class="col-12 text-center py-5">
-        <div class="badge p-4 rounded-circle mb-3" style="background-color: #e0f2f1; color: #00a79d;"><i class="bx bx-joystick fs-1"></i></div>
-        <h4 class="text-muted">Belum ada Challenge di Event ini</h4>
-        <p class="text-muted mb-4">Tambahkan challenge dari master data untuk memulai.</p>
-        <a href="{{ route('admin.events.challenges.create', $event->id) }}" class="btn btn-primary" style="background-color: #00a79d; border:none;">Pilih Challenge</a>
+
+    {{-- 2. MODERN TABLE --}}
+    <div class="card table-card">
+        <div class="table-responsive text-nowrap">
+            <table class="table table-hover mb-0">
+                <thead class="table-header-row">
+                    <tr>
+                        <th class="ps-4">Nama Challenge</th>
+                        <th>Reward (Price)</th>
+                        <th>Deskripsi</th>
+                        <th>Lampiran</th>
+                        <th class="text-center">Hapus</th>
+                    </tr>
+                </thead>
+                <tbody class="table-border-bottom-0 bg-white">
+                    @forelse($challenges as $challenge)
+                    <tr class="challenge-row">
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center py-2">
+                                <div class="avatar avatar-sm bg-label-info me-3 rounded p-1">
+                                    <i class='bx bx-trophy fs-4'></i>
+                                </div>
+                                <div class="d-flex flex-column">
+                                    <span class="fw-bold text-dark">{{ $challenge->nama }}</span>
+                                    <small class="text-muted" style="font-size: 0.7rem;">ID: #{{ $challenge->id }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {{-- Logic Warna Badge Harga --}}
+                            @php
+                                $priceColor = '#00a79d'; // Default Teal
+                                if($challenge->price >= 700000) $priceColor = '#ff3e1d'; // Red for Hard
+                                elseif($challenge->price >= 500000) $priceColor = '#ffab00'; // Yellow for Medium
+                            @endphp
+                            <span class="price-tag" style="color: {{ $priceColor }}; border-color: {{ $priceColor }}33; background: {{ $priceColor }}1a;">
+                                SQ$ {{ number_format($challenge->price, 0, ',', '.') }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="d-inline-block text-truncate text-muted" style="max-width: 250px;" title="{{ $challenge->deskripsi }}">
+                                {{ Str::limit($challenge->deskripsi ?? '-', 50) }}
+                            </span>
+                        </td>
+                        <td>
+                            @if($challenge->file_pdf)
+                                <a href="{{ asset('storage/'.$challenge->file_pdf) }}" target="_blank" class="btn btn-xs btn-outline-secondary rounded-pill">
+                                    <i class="bx bxs-file-pdf me-1"></i> PDF
+                                </a>
+                            @else
+                                <span class="text-muted small">-</span>
+                            @endif
+                        </td>
+                        <td class="text-center">
+                            <form action="{{ route('admin.events.challenges.destroy', [$event->id, $challenge->id]) }}" method="POST" onsubmit="return confirm('Hapus challenge ini dari event?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="action-btn" data-bs-toggle="tooltip" title="Lepas dari Event">
+                                    <i class="bx bx-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <img src="{{ asset('assets/img/illustrations/girl-doing-yoga-light.png') }}" width="150" class="mb-3 grayscale opacity-50">
+                            <h6 class="text-muted">Belum ada challenge di event ini.</h6>
+                            <a href="{{ route('admin.events.challenges.create', $event->id) }}" class="btn btn-sm btn-primary mt-2">
+                                Pilih dari Master Data
+                            </a>
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     </div>
-  @endforelse
 </div>
 @endsection

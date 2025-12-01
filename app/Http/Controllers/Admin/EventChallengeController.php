@@ -14,8 +14,8 @@ class EventChallengeController extends Controller
      */
     public function index(Event $event)
     {
-        // Variabel yang dikirim ke view adalah '$challenges'
-        $challenges = $event->challenges;
+        // Ambil challenge yang sudah terhubung dengan event ini
+        $challenges = $event->challenges()->orderBy('price', 'asc')->get();
 
         return view('admin.events.challenges.index', compact('event', 'challenges'));
     }
@@ -25,12 +25,15 @@ class EventChallengeController extends Controller
      */
     public function create(Event $event)
     {
-        // Ambil ID challenge yang sudah ada di event ini
+        // Ambil ID challenge yang sudah ada di event ini agar tidak muncul lagi
         $existingIds = $event->challenges()->pluck('challenges.id');
 
-        // Ambil challenge Master yang BELUM ada di event ini (agar tidak duplikat)
-        // Kita kirim sebagai '$challenges' ke view create
-        $challenges = Challenge::whereNotIn('id', $existingIds)->latest()->get();
+        // Ambil challenge Master yang BELUM ada di event ini
+        // Urutkan berdasarkan harga agar mudah dicari
+        $challenges = Challenge::whereNotIn('id', $existingIds)
+                        ->orderBy('price', 'asc')
+                        ->latest()
+                        ->get();
 
         return view('admin.events.challenges.create', compact('event', 'challenges'));
     }
@@ -40,13 +43,12 @@ class EventChallengeController extends Controller
      */
     public function store(Request $request, Event $event)
     {
-        // Validasi array ID
         $request->validate([
             'challenge_ids' => 'required|array',
             'challenge_ids.*' => 'exists:challenges,id',
         ]);
 
-        // Sync tanpa menghapus yang lama (attach banyak sekaligus)
+        // Attach challenge ke event (syncWithoutDetaching agar data lama tidak hilang)
         $event->challenges()->syncWithoutDetaching($request->challenge_ids);
 
         $count = count($request->challenge_ids);
@@ -60,6 +62,6 @@ class EventChallengeController extends Controller
     public function destroy(Event $event, Challenge $challenge)
     {
         $event->challenges()->detach($challenge->id);
-        return back()->with('success', 'Challenge dihapus dari event ini.');
+        return back()->with('success', 'Challenge berhasil dihapus dari event ini.');
     }
 }

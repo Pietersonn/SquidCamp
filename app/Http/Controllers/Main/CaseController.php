@@ -164,10 +164,23 @@ class CaseController extends Controller
       return back()->with('error', 'Kasus ini sudah disubmit sebelumnya.');
     }
 
+    // --- PERUBAHAN DI SINI (RENAME FILE) ---
     $filePath = null;
     if ($request->hasFile('submission_file')) {
-      $filePath = $request->file('submission_file')->store('submissions', 'public');
+      $file = $request->file('submission_file');
+      $extension = $file->getClientOriginalExtension();
+
+      // Bersihkan nama group (ganti spasi jadi strip, hapus karakter aneh)
+      $safeGroupName = \Illuminate\Support\Str::slug($group->name);
+
+      // Format Nama: NamaGroup_Case-ID.ext (Contoh: Tim-Alpha_Case-1.pdf)
+      $fileName = "{$safeGroupName}_Case-{$caseId}.{$extension}";
+
+      // Simpan dengan nama baru
+      $filePath = $file->storeAs('submissions', $fileName, 'public');
     }
+    // ---------------------------------------
+
     DB::transaction(function () use ($request, $event, $group, $caseId, $user, $filePath) {
 
       // Lock row count untuk ranking

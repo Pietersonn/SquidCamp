@@ -155,7 +155,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h4 class="fw-bold mb-1" style="color: var(--squid-primary);">Tambah Challenge</h4>
-            <span class="text-muted">Event: {{ $event->name }}</span>
+            <span class="text-muted">Event: <strong>{{ $event->name }}</strong></span>
         </div>
         <div class="d-flex gap-2">
             <a href="{{ route('admin.events.challenges.index', $event->id) }}" class="btn btn-label-secondary">
@@ -177,10 +177,10 @@
                     <i class="bx bx-search position-absolute top-50 translate-middle-y ms-3 text-muted" style="z-index: 10;"></i>
                     <input type="text" id="searchInput" class="form-control rounded-pill border-0 shadow-none"
                            placeholder="Cari nama challenge..."
-                           style="padding-left: 3.5rem; background-color: #fff;">
+                           style="padding-left: 3.5rem; background-color: #f4f6f8;">
                 </div>
 
-                {{-- Price Filters --}}
+                {{-- Price Filters (FIXED LOGIC: Menggunakan angka harga) --}}
                 <div class="d-flex gap-2 overflow-auto" id="priceFilters">
                     <button type="button" class="btn btn-filter active" data-price="all">Semua</button>
                     <button type="button" class="btn btn-filter" data-price="300000">300k</button>
@@ -206,8 +206,8 @@
         @else
             <div class="row g-4" id="challengeList">
                 @foreach($challenges as $c)
-                    {{-- Tambahkan data-price untuk filtering --}}
-                    <div class="col-md-6 col-lg-4 col-xl-3 challenge-item" data-price="{{ $c->kategori }}">
+                    {{-- FIX: data-price menggunakan kolom 'price' --}}
+                    <div class="col-md-6 col-lg-4 col-xl-3 challenge-item" data-price="{{ $c->price }}">
                         <div class="challenge-select-card h-100" onclick="toggleSelection('challenge_{{ $c->id }}')">
 
                             {{-- Hidden Checkbox --}}
@@ -221,9 +221,9 @@
                                 <i class='bx bx-check'></i>
                             </div>
 
-                            {{-- Reward Badge --}}
+                            {{-- Reward Badge (FIX: Menggunakan price) --}}
                             <div class="reward-badge">
-                                ${{ number_format($c->kategori, 0, ',', '.') }}
+                                $ {{ number_format($c->price, 0, ',', '.') }}
                             </div>
 
                             {{-- Visual Header --}}
@@ -248,7 +248,7 @@
                                     </small>
 
                                     @if($c->file_pdf)
-                                        {{-- Stop Propagation --}}
+                                        {{-- Stop Propagation agar klik tombol tidak memilih kartu --}}
                                         <a href="{{ asset('storage/'.$c->file_pdf) }}" target="_blank"
                                            class="btn btn-outline-info btn-view-pdf"
                                            onclick="event.stopPropagation()">
@@ -334,8 +334,8 @@
                 // Logic Pencarian Teks
                 const matchesSearch = title.includes(currentSearch) || desc.includes(currentSearch);
 
-                // Logic Filter Harga
-                const matchesPrice = (currentPrice === 'all') || (itemPrice === currentPrice);
+                // Logic Filter Harga (Menggunakan Loose Equality '==' karena data-price string)
+                const matchesPrice = (currentPrice === 'all') || (itemPrice == currentPrice);
 
                 if(matchesSearch && matchesPrice) {
                     item.classList.remove('d-none');
@@ -356,18 +356,15 @@
         // Event: Search Input (dengan Debounce)
         if(searchInput) {
             searchInput.addEventListener('input', function() {
-                // Bersihkan timer sebelumnya (reset hitungan)
                 clearTimeout(debounceTimer);
-
-                // Set timer baru
                 debounceTimer = setTimeout(() => {
                     currentSearch = this.value.toLowerCase();
                     applyFilters();
-                }, 500); // Jeda 500ms (0.5 detik)
+                }, 300);
             });
         }
 
-        // Event: Price Filter Buttons (Langsung filter, tidak perlu debounce)
+        // Event: Price Filter Buttons
         filterButtons.forEach(btn => {
             btn.addEventListener('click', function() {
                 filterButtons.forEach(b => b.classList.remove('active'));

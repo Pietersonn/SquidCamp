@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\EventGuidelineController;
 use App\Http\Controllers\Admin\ChallengeController;
 use App\Http\Controllers\Admin\GuidelineController;
 use App\Http\Controllers\Admin\CaseController;
+use App\Http\Controllers\Admin\SquidBankController;
 use App\Http\Controllers\Mentor\MentorDashboardController;
 use App\Http\Controllers\Investor\InvestorDashboardController;
 use App\Http\Controllers\Main\MainDashboardController;
@@ -70,6 +71,7 @@ Route::prefix('admin')->as('admin.')->middleware(['auth', 'role:admin'])->group(
         Route::resource('challenges', EventChallengeController::class);
         Route::resource('guidelines', EventGuidelineController::class);
         Route::resource('cases', EventCaseController::class);
+        Route::resource('squidbank', SquidBankController::class);
     });
 });
 
@@ -126,7 +128,7 @@ Route::middleware(['auth', 'role:user'])->group(function () {
 
             // Transfer Saldo
             Route::post('/transfer', [TransactionController::class, 'transfer'])->name('transaction.transfer');
-
+            Route::post('/transaction/withdraw-from-bank', [TransactionController::class, 'withdrawFromBank'])->name('transaction.withdrawFromBank');
             // Challenge
             Route::get('/challenges', [MainChallengeController::class, 'index'])->name('challenges.index');
             Route::post('/challenges/take', [MainChallengeController::class, 'take'])->name('challenges.take');

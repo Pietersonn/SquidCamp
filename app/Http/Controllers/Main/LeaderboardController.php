@@ -11,34 +11,34 @@ use App\Models\GroupMember;
 
 class LeaderboardController extends Controller
 {
-    public function index()
-    {
-        $user = Auth::user();
+  public function index()
+  {
+    $user = Auth::user();
 
-        // 1. Cari Event Aktif user
-        $membership = GroupMember::where('user_id', $user->id)
-            ->whereHas('event', function($q) {
-                $q->where('is_active', true);
-            })
-            ->with('event')
-            ->first();
+    // 1. Cari Event Aktif user
+    $membership = GroupMember::where('user_id', $user->id)
+      ->whereHas('event', function ($q) {
+        $q->where('is_active', true);
+      })
+      ->with('event')
+      ->first();
 
-        if (!$membership) {
-            return redirect()->route('main.dashboard')->with('error', 'Event tidak aktif.');
-        }
-
-        $event = $membership->event;
-        $myGroupId = $membership->group_id;
-
-        // 2. Ambil Leaderboard (Urutkan berdasarkan Squid Dollar)
-        $leaderboard = Group::where('event_id', $event->id)
-            ->orderBy('squid_dollar', 'desc')
-            ->get();
-
-        // 3. Pisahkan Top 3 untuk Podium
-        $topThree = $leaderboard->take(3);
-        $others = $leaderboard->skip(3);
-
-        return view('main.menu.leaderboard', compact('event', 'topThree', 'others', 'myGroupId'));
+    if (!$membership) {
+      return redirect()->route('main.dashboard')->with('error', 'Event tidak aktif.');
     }
+
+    $event = $membership->event;
+    $myGroupId = $membership->group_id;
+
+    // 2. Ambil Leaderboard (Urutkan berdasarkan Squid Dollar)
+    $leaderboard = Group::where('event_id', $event->id)
+      ->selectRaw('*, (squid_dollar + bank_balance) as total_wealth') // Hitung total
+      ->orderBy('total_wealth', 'desc') // Urutkan berdasarkan total
+      ->get();
+
+    $topThree = $leaderboard->take(3);
+    $others = $leaderboard->skip(3);
+
+    return view('main.menu.leaderboard', compact('event', 'topThree', 'others', 'myGroupId'));
+  }
 }
