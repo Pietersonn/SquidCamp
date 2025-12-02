@@ -9,27 +9,42 @@ class Event extends Model
 {
     use HasFactory;
 
+    /**
+     * Menggunakan guarded kosong atau id agar semua kolom lain (termasuk is_active, is_finished)
+     * bisa diisi secara mass assignment (create/update).
+     */
     protected $guarded = ['id'];
 
+    /**
+     * Konversi tipe data otomatis
+     */
     protected $casts = [
-        // TANGGAL
+        // Status Event (PENTING untuk logika tombol Start/Finish)
+        'is_active'   => 'boolean',
+        'is_finished' => 'boolean',
+
+        // TANGGAL UTAMA
         'event_date' => 'date',
 
-        // DATETIME
+        // PERIODE REGISTRASI
         'registration_start' => 'datetime',
-        'registration_end' => 'datetime',
+        'registration_end'   => 'datetime',
 
+        // WAKTU PELAKSANAAN (OPSIONAL JIKA DIPERLUKAN)
         'event_start_time' => 'datetime',
-        'event_end_time' => 'datetime',
+        'event_end_time'   => 'datetime',
 
+        // FASE 1: CHALLENGE
         'challenge_start_time' => 'datetime',
-        'challenge_end_time' => 'datetime',
+        'challenge_end_time'   => 'datetime',
 
+        // FASE 2: CASE
         'case_start_time' => 'datetime',
-        'case_end_time' => 'datetime',
+        'case_end_time'   => 'datetime',
 
+        // FASE 3: SHOW / FINAL
         'show_start_time' => 'datetime',
-        'show_end_time' => 'datetime',
+        'show_end_time'   => 'datetime',
     ];
 
     // ================= RELASI UTAMA =================
@@ -40,20 +55,21 @@ class Event extends Model
         return $this->hasMany(Group::class);
     }
 
-    // 2. Members (Semua Peserta yang join event ini)
+    // 2. Members (Semua Peserta yang join event ini lewat group)
+    // Relasi HasManyThrough sebenarnya lebih tepat jika GroupMember terhubung via Group
+    // Tapi jika tabel group_members punya event_id, hasMany biasa sudah benar.
     public function members()
     {
         return $this->hasMany(GroupMember::class);
     }
 
     // 3. Investors (Investor yang masuk ke event ini)
-    // PENTING: Method ini yang dipanggil oleh EventInvestorController
     public function eventInvestors()
     {
         return $this->hasMany(EventInvestor::class);
     }
 
-    // Alias: Jika ada kode lama yang memanggil 'investors', arahkan ke 'eventInvestors'
+    // Alias: Agar kode lama yang memanggil 'investors' tetap jalan
     public function investors()
     {
         return $this->eventInvestors();
@@ -77,9 +93,9 @@ class Event extends Model
     }
 
     // 6. Cases (Fase 2)
-    // Perhatikan: Menggunakan Model 'Cases' sesuai nama file Anda
     public function cases()
     {
+        // Pastikan nama Model 'Cases' sesuai dengan nama class/file aslinya (singular/plural)
         return $this->belongsToMany(Cases::class, 'event_cases', 'event_id', 'case_id')
                     ->withTimestamps();
     }
@@ -90,6 +106,4 @@ class Event extends Model
         return $this->belongsToMany(Guideline::class, 'event_guidelines')
                     ->withTimestamps();
     }
-
-
 }

@@ -10,6 +10,10 @@ class LoginController extends Controller
 {
     public function index()
     {
+        // Jika user sudah login saat akses halaman login, cek role dan redirect
+        if (Auth::check()) {
+            return $this->redirectBasedOnRole(Auth::user());
+        }
         return view('auth.login');
     }
 
@@ -23,23 +27,25 @@ class LoginController extends Controller
         if (Auth::attempt($credentials, $request->boolean('remember-me'))) {
             $request->session()->regenerate();
 
-            $user = Auth::user();
-
-            // Redirect sesuai role
-            $redirectRoute = match ($user->role) {
-                'admin'   => 'admin.dashboard',
-                'mentor'  => 'mentor.dashboard',
-                'investor'=> 'investor.dashboard',
-                'user'    => 'main.dashboard',
-                default   => 'main.dashboard',
-            };
-
-            return redirect()
-                ->intended(route($redirectRoute))
+            return $this->redirectBasedOnRole(Auth::user())
                 ->with('success', 'Login berhasil! Selamat datang kembali.');
         }
 
         return back()->with('error', 'Email atau password salah!');
+    }
+
+    // Helper function untuk redirect
+    protected function redirectBasedOnRole($user)
+    {
+        $route = match ($user->role) {
+            'admin'    => 'admin.dashboard',
+            'mentor'   => 'mentor.dashboard',
+            'investor' => 'investor.dashboard',
+            'user'     => 'landing', // UBAH DISINI: User kembali ke landing page
+            default    => 'landing',
+        };
+
+        return redirect()->intended(route($route));
     }
 
     public function logout(Request $request)
@@ -48,6 +54,6 @@ class LoginController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect(route('login'))->with('info', 'Anda telah logout.');
+        return redirect(route('landing'))->with('info', 'Anda telah logout.');
     }
 }

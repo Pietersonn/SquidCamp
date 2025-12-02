@@ -58,14 +58,24 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->midd
 */
 Route::prefix('admin')->as('admin.')->middleware(['auth', 'role:admin'])->group(function () {
   Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+
+  // Resource Utama
   Route::resource('/challenges', ChallengeController::class);
   Route::resource('/guidelines', GuidelineController::class);
   Route::resource('/cases', CaseController::class);
   Route::resource('/users', UserController::class);
+
+  // Event Management Utama
   Route::resource('/events', EventController::class);
   Route::post('/events/{event}/toggle-active', [EventController::class, 'toggleActive'])->name('events.toggleActive');
 
   Route::prefix('events/{event}')->as('events.')->group(function () {
+
+    // 1. Action Tombol (Start/Finish) - Cukup tulis 'start' dan 'finish'
+    Route::post('start', [EventController::class, 'startEvent'])->name('start');   // Nama jadi: admin.events.start
+    Route::post('finish', [EventController::class, 'finishEvent'])->name('finish'); // Nama jadi: admin.events.finish
+
+    // 2. Sub-Modules
     Route::resource('groups', EventGroupController::class);
     Route::resource('mentors', EventMentorController::class);
     Route::resource('investors', EventInvestorController::class);
@@ -119,6 +129,7 @@ Route::middleware(['auth', 'role:user'])->group(function () {
   Route::get('/event/{event}/join', [OnboardingController::class, 'joinEvent'])->name('main.event.join');
   Route::get('/event/{event}/onboarding', [OnboardingController::class, 'showForm'])->name('main.onboarding.form');
   Route::post('/event/{event}/onboarding', [OnboardingController::class, 'store'])->name('main.onboarding.store');
+  Route::get('/thanks', [MainDashboardController::class, 'thanks'])->name('thanks');
 
   // Main Dashboard & Features
   Route::prefix('main')->as('main.')

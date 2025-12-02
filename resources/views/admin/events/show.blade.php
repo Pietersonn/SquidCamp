@@ -260,7 +260,7 @@
         {{-- Status Badge --}}
         <div class="status-badge-floating {{ $event->is_active ? 'status-active' : 'status-inactive' }}">
           <i class="bx {{ $event->is_active ? 'bx-check-circle' : 'bx-power-off' }} me-1"></i>
-          {{ $event->is_active ? 'ACTIVE EVENT' : 'NON-ACTIVE' }}
+          {{ $event->is_active ? 'ACTIVE EVENT' : ($event->is_finished ? 'FINISHED' : 'NOT ACTIVE') }}
         </div>
 
         <div class="banner-bg"
@@ -375,7 +375,7 @@
                   'color' => 'success',
               ],
               [
-                  'route' => 'admin.events.case-submission.index', // Menuju CaseSubmissionController
+                  'route' => 'admin.events.case-submission.index',
                   'icon'  => 'bx-list-check',
                   'label' => 'Case Submissions',
                   'desc'  => 'Cek Jawaban Peserta',
@@ -403,6 +403,57 @@
 
     {{-- RIGHT SIDE: WIDGETS --}}
     <div class="col-12 col-xl-4">
+
+      {{-- [BARU] WIDGET: CONTROL PANEL (START/FINISH) --}}
+      <div class="widget-card">
+        <div class="widget-header bg-label-primary">
+          <i class="bx bx-joystick me-2 text-primary"></i>
+          <span class="text-primary fw-bold">Event Control</span>
+        </div>
+        <div class="card-body p-4 text-center">
+            @if(!$event->is_active && !$event->is_finished)
+                {{-- KONDISI 1: Belum Mulai --}}
+                <div class="mb-3">
+                    <div class="avatar avatar-xl mx-auto bg-label-secondary rounded-circle mb-2">
+                         <i class='bx bx-play-circle fs-1'></i>
+                    </div>
+                    <p class="text-muted small mb-0">Event belum aktif. Peserta belum bisa masuk.</p>
+                </div>
+                <form action="{{ route('admin.events.start', $event->id) }}" method="POST">
+                    @csrf
+                    <button type="submit" class="btn btn-primary w-100 fw-bold shadow-sm rounded-pill">
+                        <i class="bx bx-power-off me-1"></i> MULAI EVENT
+                    </button>
+                </form>
+
+            @elseif($event->is_active)
+                {{-- KONDISI 2: Sedang Berlangsung --}}
+                <div class="mb-3">
+                    <div class="avatar avatar-xl mx-auto bg-label-success rounded-circle mb-2">
+                        <span class="spinner-grow text-success" role="status" aria-hidden="true" style="width: 2rem; height: 2rem;"></span>
+                    </div>
+                    <h5 class="fw-bold text-success mb-0">Event Sedang Live!</h5>
+                    <p class="text-muted small">Klik tombol di bawah jika seluruh rangkaian acara telah selesai.</p>
+                </div>
+                <form action="{{ route('admin.events.finish', $event->id) }}" method="POST" onsubmit="return confirm('PERINGATAN: Aksi ini akan menutup event dan mengarahkan semua peserta ke halaman Terima Kasih. Lanjutkan?');">
+                    @csrf
+                    <button type="submit" class="btn btn-danger w-100 fw-bold shadow-sm rounded-pill">
+                        <i class="bx bx-stop-circle me-1"></i> SELESAI EVENT
+                    </button>
+                </form>
+
+            @elseif($event->is_finished)
+                {{-- KONDISI 3: Sudah Selesai --}}
+                <div class="py-2">
+                    <div class="avatar avatar-xl mx-auto bg-label-secondary rounded-circle mb-3">
+                         <i class='bx bx-flag fs-1'></i>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-1">Event Telah Selesai</h5>
+                    <p class="text-muted small mb-0">Terima kasih atas kerja keras Anda!</p>
+                </div>
+            @endif
+        </div>
+      </div>
 
       {{-- WIDGET: TIMER --}}
       <div class="widget-card">

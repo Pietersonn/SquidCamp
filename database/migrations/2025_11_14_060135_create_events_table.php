@@ -29,7 +29,10 @@ return new class extends Migration
             $table->timestamp('show_start_time')->nullable();
             $table->timestamp('show_end_time')->nullable();
 
-            $table->boolean('is_active')->default(false);
+            // Status Event
+            $table->boolean('is_active')->default(false);   // Untuk status LIVE/MULAI
+            $table->boolean('is_finished')->default(false); // <--- TAMBAHAN DI SINI
+
             $table->timestamps();
         });
     }

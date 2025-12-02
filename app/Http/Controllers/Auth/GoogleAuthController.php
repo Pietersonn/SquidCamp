@@ -21,25 +21,26 @@ class GoogleAuthController extends Controller
     public function callback()
     {
         try {
+            /** @var \Laravel\Socialite\Contracts\User $googleUser */
             $googleUser = Socialite::driver('google')->user();
 
-            // Cek berdasarkan google_id
-            $user = User::where('google_id', $googleUser->id)->first();
+            // Cek berdasarkan google_id (Gunakan getId())
+            $user = User::where('google_id', $googleUser->getId())->first();
 
             if (!$user) {
-                // Cek email
-                $user = User::where('email', $googleUser->email)->first();
+                // Cek email (Gunakan getEmail())
+                $user = User::where('email', $googleUser->getEmail())->first();
 
                 if ($user) {
                     // Hubungkan akun lama ke Google
-                    $user->update(['google_id' => $googleUser->id]);
+                    $user->update(['google_id' => $googleUser->getId()]);
                 } else {
-                    // Buat user baru
+                    // Buat user baru (Gunakan getter untuk semua field)
                     $user = User::create([
-                        'name'      => $googleUser->name,
-                        'email'     => $googleUser->email,
-                        'google_id' => $googleUser->id,
-                        'avatar'    => $googleUser->avatar,
+                        'name'      => $googleUser->getName(),
+                        'email'     => $googleUser->getEmail(),
+                        'google_id' => $googleUser->getId(),
+                        'avatar'    => $googleUser->getAvatar(),
                         'password'  => Hash::make(uniqid()),
                         'role'      => 'user'
                     ]);
@@ -48,7 +49,16 @@ class GoogleAuthController extends Controller
 
             Auth::login($user);
 
-            return redirect(route('main.dashboard'))
+            // Redirect sesuai role
+            $redirectRoute = match ($user->role) {
+                'admin'   => 'admin.dashboard',
+                'mentor'  => 'mentor.dashboard',
+                'investor'=> 'investor.dashboard',
+                'user'    => 'landing',
+                default   => 'landing',
+            };
+
+            return redirect(route($redirectRoute))
                 ->with('success', 'Login Google berhasil!');
 
         } catch (\Exception $e) {
