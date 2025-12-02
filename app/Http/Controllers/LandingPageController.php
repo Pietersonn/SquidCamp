@@ -11,9 +11,9 @@ class LandingPageController extends Controller
 {
     public function index()
     {
-        // 1. Cek User Role (Proteksi Halaman Landing)
-        // Jika Admin, Mentor, atau Investor mencoba akses '/', lempar ke dashboard mereka.
+        // 1. Cek User Role (Redirect Admin/Mentor ke Dashboard)
         if (Auth::check()) {
+            /** @var \App\Models\User $user */
             $user = Auth::user();
 
             if ($user->role !== 'user') {
@@ -24,20 +24,18 @@ class LandingPageController extends Controller
                     default    => 'landing',
                 };
 
-                // Cegah redirect loop jika route-nya sama
                 if ($dashboardRoute !== 'landing') {
                     return redirect()->route($dashboardRoute);
                 }
             }
         }
 
-        // 2. Logika Filter Event (Strict Date)
-        // Ambil tanggal hari ini (Y-m-d)
+        // 2. LOGIKA FILTER EVENT
+        // Ambil tanggal hari ini
         $today = Carbon::today()->toDateString();
 
-        // Query: Hanya ambil event yang tanggalnya HARI INI atau MASA DEPAN.
-        // Event kemarin (H-1) otomatis tidak terambil.
-        $events = Event::whereDate('event_date', '>=', $today)
+        $events = Event::whereDate('event_date', '>=', $today) // Hanya Hari Ini atau Masa Depan
+                        ->where('is_finished', false)          // [BARU] Sembunyikan yang sudah Finish
                         ->orderBy('event_date', 'asc')
                         ->get();
 

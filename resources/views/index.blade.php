@@ -144,7 +144,7 @@
         @endguest
     </div>
 
-    {{-- 3. RULES & GUIDELINES SECTION (PDF Buttons) --}}
+    {{-- 3. RULES & GUIDELINES SECTION --}}
     <div class="container px-3 mb-4">
         <h6 class="fw-bold text-dark mb-3 ps-1">📚 Informasi Penting</h6>
 
@@ -201,14 +201,13 @@
                             $isToday = \Carbon\Carbon::parse($event->event_date)->isToday();
                         @endphp
 
-                        @if($isToday && $event->is_active)
-                            {{-- Hari ini & Aktif --}}
+                        @if($event->is_finished)
+                            SELESAI
+                        @elseif($event->is_active)
                             LIVE NOW
                         @elseif($isToday && !$event->is_active)
-                            {{-- Hari ini tapi belum mulai (Admin belum klik toggle) --}}
-                            TODAY
+                            MENUNGGU ADMIN
                         @else
-                            {{-- Event masa depan --}}
                             COMING SOON
                         @endif
                     </span>
@@ -226,9 +225,32 @@
                         {{ Str::limit($event->description ?? 'Tantangan logika, algoritma, dan kerjasama tim menanti anda di event ini.', 80) }}
                     </p>
 
-                    <a href="{{ route('main.event.join', $event->id) }}" class="btn btn-action-primary w-100 rounded-3 py-2">
-                        Gabung Event <i class='bx bx-right-arrow-alt ms-1'></i>
-                    </a>
+                    {{-- LOGIKA TOMBOL EVENT --}}
+                    @if($event->is_finished)
+                        {{-- KONDISI 1: Event Selesai --}}
+                        <button class="btn btn-secondary w-100 rounded-3 py-2" disabled>
+                            <i class='bx bx-flag me-1'></i> Event Telah Selesai
+                        </button>
+
+                    @elseif($event->is_active)
+                        {{-- KONDISI 2: Event LIVE (Satu-satunya yang bisa diklik) --}}
+                        <a href="{{ route('main.dashboard') }}" class="btn btn-action-primary w-100 rounded-3 py-2">
+                            Masuk Event <i class='bx bx-right-arrow-alt ms-1'></i>
+                        </a>
+
+                    @elseif($isToday && !$event->is_active)
+                        {{-- KONDISI 3: Hari H tapi belum Start --}}
+                        <button class="btn btn-warning w-100 rounded-3 py-2 text-dark fw-bold" disabled style="opacity: 1;">
+                            <i class='bx bx-time me-1'></i> Menunggu Dimulai
+                        </button>
+
+                    @else
+                        {{-- KONDISI 4: Coming Soon (Masa Depan) --}}
+                        <button class="btn btn-secondary w-100 rounded-3 py-2" disabled style="opacity: 0.6;">
+                            <i class='bx bx-calendar me-1'></i> Coming Soon
+                        </button>
+                    @endif
+
                 </div>
             </div>
         @empty

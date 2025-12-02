@@ -12,6 +12,8 @@
     }
     body { background-color: #fffbf0; }
 
+    /* ... STYLE LAINNYA SAMA SEPERTI SEBELUMNYA ... */
+
     .case-header { background: linear-gradient(135deg, var(--bee-main) 0%, var(--bee-gold) 100%); border-bottom-left-radius: 40px; border-bottom-right-radius: 40px; padding: 40px 25px 120px 25px; color: var(--bee-text); text-align: center; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(251, 192, 45, 0.3); }
     .header-icon { font-size: 8rem; position: absolute; opacity: 0.1; color: var(--bee-text); }
 
@@ -94,8 +96,9 @@
             <h6 class="fw-bold m-0" style="color: var(--bee-text);">
                 <i class='bx bxs-store-alt me-1'></i>Secret Shop
             </h6>
+            {{-- UPDATED: MENAMPILKAN SALDO BANK --}}
             <span class="badge rounded-pill" style="background: var(--bee-text); color: var(--bee-main);">
-                Cash: ${{ number_format($group->bank_balance ?? 0, 0, ',', '.') }}
+                Bank: ${{ number_format($group->bank_balance ?? 0, 0, ',', '.') }}
             </span>
         </div>
 
@@ -266,7 +269,8 @@
                         </div>
                     </div>
                     <h5 class="fw-bold mb-1" style="color: var(--bee-text);">Konfirmasi Pembelian</h5>
-                    <p class="text-muted small mb-4">Apakah Anda yakin ingin membeli dokumen ini?</p>
+                    {{-- Updated Confirmation Text --}}
+                    <p class="text-muted small mb-4">Apakah Anda yakin ingin membeli dokumen ini menggunakan <b>Saldo Bank</b>?</p>
 
                     <div class="bg-light p-3 rounded-3 mb-4 text-start">
                         <table class="w-100 small">

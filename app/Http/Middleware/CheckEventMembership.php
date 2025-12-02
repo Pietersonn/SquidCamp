@@ -11,42 +11,62 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CheckEventMembership
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     */
     public function handle(Request $request, Closure $next): Response
     {
         $user = Auth::user();
+        $event = null;
 
-        // 1. Cari Event yang sedang Aktif
-        $activeEvent = Event::where('is_active', 1)->first();
+        // 1. Coba ambil Event dari URL (Route Model Binding)
+        // Contoh: /event/{id}/onboarding
+        if ($request->route('event') instanceof Event) {
+            $event = $request->route('event');
+        } elseif ($request->route('event')) {
+            $event = Event::find($request->route('event'));
+        }
 
-        // Jika tidak ada event aktif, biarkan request lanjut (atau bisa redirect ke halaman 'No Event')
-        if (!$activeEvent) {
+        // 2. Jika tidak ada di URL, ambil dari history membership user terakhir
+        if (!$event && $user) {
+            $lastMember = GroupMember::where('user_id', $user->id)->latest()->first();
+            if ($lastMember) {
+                $event = $lastMember->event;
+            }
+        }
+
+        // 3. Jika masih null, cari Event Aktif atau Upcoming
+        if (!$event) {
+            $event = Event::where('is_active', true)->first(); // Prioritas Live
+            if (!$event) {
+                $event = Event::where('is_finished', false)
+                              ->whereDate('event_date', '>=', now()) // Prioritas Upcoming
+                              ->orderBy('event_date', 'asc')
+                              ->first();
+            }
+        }
+
+        // Jika tetap tidak ada event, biarkan lewat (mungkin halaman error)
+        if (!$event) {
             return $next($request);
         }
 
-        // 2. Cek apakah user sudah terdaftar di salah satu grup pada event ini
-        $hasGroup = GroupMember::where('user_id', $user->id)
-            ->where('event_id', $activeEvent->id)
-            ->exists();
+        // --- CEK APAKAH USER SUDAH JOIN DI EVENT INI? ---
+        $hasGroup = false;
+        if ($user) {
+            $hasGroup = GroupMember::where('user_id', $user->id)
+                ->where('event_id', $event->id)
+                ->exists();
+        }
 
-        // --- SKENARIO A: User BELUM punya kelompok ---
-        // Aksi: Wajib ke Onboarding, tidak boleh akses halaman lain di 'main.*'
+        // SKENARIO A: Belum punya kelompok -> Wajib Onboarding
         if (!$hasGroup) {
-            // Jika rute yang diakses BUKAN onboarding, paksa redirect ke onboarding
-            if (!$request->routeIs('main.onboarding.*')) {
+            // Kecuali sedang di halaman onboarding/join, lempar ke onboarding
+            if (!$request->routeIs('main.onboarding.*') && !$request->routeIs('main.event.join')) {
                 return redirect()->route('main.onboarding.index');
             }
         }
 
-        // --- SKENARIO B: User SUDAH punya kelompok ---
-        // Aksi: Tidak boleh masuk ke Onboarding lagi (biar gak ganti-ganti atau double)
+        // SKENARIO B: Sudah punya kelompok -> Dilarang masuk Onboarding lagi
         if ($hasGroup) {
-            // Jika rute yang diakses ADALAH onboarding, lempar balik ke dashboard
-            if ($request->routeIs('main.onboarding.*')) {
+            if ($request->routeIs('main.onboarding.*') || $request->routeIs('main.event.join')) {
                 return redirect()->route('main.dashboard');
             }
         }

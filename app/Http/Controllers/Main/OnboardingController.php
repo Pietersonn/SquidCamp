@@ -11,37 +11,61 @@ use Illuminate\Support\Facades\Auth;
 
 class OnboardingController extends Controller
 {
-    // Redirect ke onboarding event yang aktif (Mengatasi RouteNotFound)
+    // Redirect ke onboarding event yang aktif ATAU yang akan datang
     public function index()
     {
-        $activeEvent = Event::where('is_active', true)->first();
+        // 1. Prioritas: Cari Event yang sedang LIVE (is_active = 1)
+        $event = Event::where('is_active', true)->first();
 
-        if ($activeEvent) {
-            return redirect()->route('main.onboarding.form', $activeEvent->id);
+        // 2. Fallback: Jika tidak ada yang Live, cari Event Upcoming (Coming Soon)
+        // Syarat: Belum selesai (is_finished = 0) dan tanggalnya hari ini atau masa depan
+        if (!$event) {
+            $event = Event::where('is_finished', false)
+                          ->whereDate('event_date', '>=', now())
+                          ->orderBy('event_date', 'asc')
+                          ->first();
         }
 
-        return redirect()->route('landing')->with('error', 'Tidak ada event aktif.');
+        // Jika ketemu eventnya (entah aktif atau coming soon), buka form
+        if ($event) {
+            return redirect()->route('main.onboarding.form', $event->id);
+        }
+
+        return redirect()->route('landing')->with('error', 'Tidak ada event aktif atau akan datang.');
     }
 
     // Bridge dari Landing Page "Join Now"
     public function joinEvent(Event $event)
     {
         $user = Auth::user();
-        $existingMember = GroupMember::where('user_id', $user->id)->where('event_id', $event->id)->first();
 
-        if ($existingMember) return redirect()->route('main.dashboard');
+        // Cek apakah user sudah join event INI
+        $existingMember = GroupMember::where('user_id', $user->id)
+                                     ->where('event_id', $event->id)
+                                     ->first();
 
+        // Jika sudah join, langsung lempar ke dashboard
+        if ($existingMember) {
+            return redirect()->route('main.dashboard');
+        }
+
+        // Jika belum, arahkan ke form pendaftaran event TERSEBUT
         return redirect()->route('main.onboarding.form', $event->id);
     }
 
     // Menampilkan Form Piliih Tim
     public function showForm(Event $event)
     {
-        // Cek lagi takutnya user refresh halaman padahal udah join
-        $isJoined = GroupMember::where('user_id', Auth::id())->where('event_id', $event->id)->exists();
+        // Double check: Kalau user iseng refresh padahal udah join
+        $isJoined = GroupMember::where('user_id', Auth::id())
+                               ->where('event_id', $event->id)
+                               ->exists();
+
         if ($isJoined) return redirect()->route('main.dashboard');
 
+        // Ambil daftar kelompok di event ini
         $groups = Group::where('event_id', $event->id)->withCount('members')->get();
+
         return view('main.onboarding.index', compact('groups', 'event'));
     }
 
@@ -50,13 +74,13 @@ class OnboardingController extends Controller
     {
         $request->validate([
             'group_id' => 'required|exists:groups,id',
-            'role' => 'required|in:captain,cocaptain,member',
+            'role'     => 'required|in:captain,cocaptain,member',
         ]);
 
         $user = Auth::user();
         $group = Group::findOrFail($request->group_id);
 
-        // Validasi Role Slot
+        // Validasi Slot Role
         if ($request->role === 'captain' && $group->captain_id) {
             return back()->with('error', 'Posisi Captain sudah diambil orang lain!');
         }
@@ -64,9 +88,9 @@ class OnboardingController extends Controller
             return back()->with('error', 'Posisi Co-Captain sudah diambil orang lain!');
         }
 
-        // 1. Masukkan ke Member
+        // 1. Masukkan User ke Tabel Member
         GroupMember::create([
-            'user_id' => $user->id,
+            'user_id'  => $user->id,
             'group_id' => $group->id,
             'event_id' => $event->id,
         ]);
@@ -78,6 +102,9 @@ class OnboardingController extends Controller
             $group->update(['cocaptain_id' => $user->id]);
         }
 
-        return redirect()->route('main.dashboard')->with('success', 'Welcome to the game!');
+        // Redirect ke dashboard.
+        // NANTI: Middleware CheckEventStatus akan mencegat jika event belum mulai (redirect balik ke landing).
+        return redirect()->route('main.dashboard')
+            ->with('success', 'Berhasil bergabung! Menunggu event dimulai.');
     }
 }
