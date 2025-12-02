@@ -9,7 +9,7 @@
       background: linear-gradient(135deg, #00a79d 0%, #00d4c7 100%);
       border-bottom-left-radius: 35px;
       border-bottom-right-radius: 35px;
-      padding: 40px 25px 110px 25px; /* Padding bawah untuk space kartu saldo */
+      padding: 40px 25px 110px 25px;
       color: white;
       position: relative;
     }
@@ -169,7 +169,9 @@
         /* Green Gradient for Title Icon */
         background: linear-gradient(135deg, #00a79d 0%, #00796b 100%);
         border-radius: 10px;
-        display: flex; align-items: center; justify-content: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         color: white;
         box-shadow: 0 4px 10px rgba(0, 167, 157, 0.3);
     }
@@ -304,15 +306,15 @@
         SQUID BANK (TABUNGAN)
       </span>
 
-      {{-- Saldo Bank --}}
+      {{-- [PERBAIKAN] SQUID BANK ADALAH bank_balance --}}
       <h2 class="mb-0 balance-amount text-primary">
-        <span class="currency-symbol text-primary">$</span>{{ number_format($group->squid_dollar ?? 0, 0, ',', '.') }}
+        <span class="currency-symbol text-primary">$</span>{{ number_format($group->bank_balance ?? 0, 0, ',', '.') }}
       </h2>
 
-      {{-- Saldo Cash --}}
+      {{-- [PERBAIKAN] CASH ADALAH squid_dollar --}}
       <div class="mt-1">
         <span class="badge bg-label-success rounded-pill" style="font-size: 0.7rem;">
-            <i class='bx bx-wallet me-1'></i>Cash: ${{ number_format($group->bank_balance ?? 0, 0, ',', '.') }}
+            <i class='bx bx-wallet me-1'></i>Cash: ${{ number_format($group->squid_dollar ?? 0, 0, ',', '.') }}
         </span>
       </div>
     </div>
@@ -387,9 +389,6 @@
       @endforeach
   </div>
 
-  {{-- 4. SECONDARY MENU (REMOVED) --}}
-  {{-- Menu Sekunder dihapus sesuai permintaan --}}
-
   {{-- 5. EVENT INTELLIGENCE CARD (GREEN THEME) --}}
   <div class="custom-section-title">
     <div class="title-icon-box">
@@ -442,7 +441,7 @@
 
   {{-- ================= MODALS ================= --}}
 
-  {{-- MODAL 1: TRANSFER --}}
+  {{-- MODAL 1: TRANSFER (PAKE BANK BALANCE) --}}
   <div class="modal fade" id="transferModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content border-0 shadow-lg" style="border-radius: 25px;">
@@ -470,11 +469,13 @@
               <label class="form-label small fw-bold text-muted">Nominal (SQ$)</label>
               <div class="input-group input-group-lg bg-light rounded-3">
                 <span class="input-group-text border-0 bg-transparent text-primary fw-bold">$</span>
+                {{-- MAX: BANK BALANCE --}}
                 <input type="number" name="amount" class="form-control border-0 bg-transparent fw-bold text-dark"
                        placeholder="0" min="100" max="{{ $group->bank_balance ?? 0 }}" required>
               </div>
               <small class="text-muted mt-1 d-block" style="font-size: 0.7rem;">
-                Saldo Cash Tersedia: ${{ number_format($group->bank_balance ?? 0, 0, ',', '.') }}
+                {{-- LABEL: BANK BALANCE --}}
+                Saldo Bank Tersedia: ${{ number_format($group->bank_balance ?? 0, 0, ',', '.') }}
               </small>
             </div>
             <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold shadow-sm" style="background-color: #00a79d; border:none;">
@@ -508,12 +509,14 @@
               <label class="form-label small fw-bold text-muted">Jumlah Penarikan (SQ$)</label>
               <div class="input-group input-group-lg bg-light rounded-3">
                 <span class="input-group-text border-0 bg-transparent text-primary fw-bold">$</span>
+                {{-- MAX: BANK BALANCE --}}
                 <input type="number" name="amount" class="form-control border-0 bg-transparent fw-bold text-dark"
-                       placeholder="0" min="1" max="{{ $group->squid_dollar ?? 0 }}" required>
+                       placeholder="0" min="1" max="{{ $group->bank_balance ?? 0 }}" required>
               </div>
               <div class="d-flex justify-content-between mt-1">
                  <small class="text-muted" style="font-size: 0.7rem;">Sumber: Squid Bank</small>
-                 <small class="fw-bold text-dark" style="font-size: 0.7rem;">Tersedia: ${{ number_format($group->squid_dollar ?? 0) }}</small>
+                 {{-- SUMBER: BANK BALANCE --}}
+                 <small class="fw-bold text-dark" style="font-size: 0.7rem;">Tersedia: ${{ number_format($group->bank_balance ?? 0) }}</small>
               </div>
             </div>
 
@@ -576,12 +579,12 @@
 @endsection
 
 @push('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        @if(session('withdrawal_receipt'))
-            var receiptModal = new bootstrap.Modal(document.getElementById('receiptModal'));
-            receiptModal.show();
-        @endif
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      @if(session('withdrawal_receipt'))
+        var receiptModal = new bootstrap.Modal(document.getElementById('receiptModal'));
+        receiptModal.show();
+      @endif
     });
-</script>
+  </script>
 @endpush

@@ -8,27 +8,21 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\ChallengeSubmission;
 use App\Models\Group;
-use App\Models\Transaction;
+use App\Models\Transaction; // Pastikan Model Transaction di-use
 
 class MentorDashboardController extends Controller
 {
-    /**
-     * HALAMAN 1: DASHBOARD (HOME)
-     * Menampilkan overview dan tugas yang HARUS segera dikerjakan (Pending)
-     */
     public function index()
     {
         $user = Auth::user();
         $mentoredGroupIds = Group::where('mentor_id', $user->id)->pluck('id');
 
-        // 1. Ambil Submission yang PENDING (Prioritas Utama)
         $pendingSubmissions = ChallengeSubmission::whereIn('group_id', $mentoredGroupIds)
             ->where('status', 'pending')
             ->with(['group', 'challenge'])
             ->orderBy('created_at', 'asc')
             ->get();
 
-        // 2. Statistik Ringkas untuk Header Dashboard
         $stats = [
             'total_groups' => $mentoredGroupIds->count(),
             'pending_review' => $pendingSubmissions->count(),
@@ -38,15 +32,9 @@ class MentorDashboardController extends Controller
         return view('mentor.index', compact('pendingSubmissions', 'stats', 'user'));
     }
 
-    /**
-     * HALAMAN 2: MONITORING GROUP (TEAM)
-     * Daftar kelompok yang dimenti dan status mereka
-     */
     public function myGroups()
     {
         $user = Auth::user();
-
-        // Ambil data group beserta hitungan challenge yang selesai
         $groups = Group::where('mentor_id', $user->id)
             ->withCount(['completedChallenges' => function ($query) {
                 $query->where('status', 'approved');
@@ -56,16 +44,11 @@ class MentorDashboardController extends Controller
         return view('mentor.groups.index', compact('groups'));
     }
 
-    /**
-     * DETAIL MONITORING PER GROUP
-     * Melihat detail satu kelompok: challenge aktif, riwayat, saldo
-     */
     public function showGroup($id)
     {
         $group = Group::with(['members', 'activeChallenges.challenge', 'completedChallenges.challenge'])
                 ->findOrFail($id);
 
-        // Pastikan mentor ini berhak melihat group ini
         if($group->mentor_id != Auth::id()) {
             abort(403, 'Unauthorized access to this group');
         }
@@ -73,28 +56,21 @@ class MentorDashboardController extends Controller
         return view('mentor.groups.show', compact('group'));
     }
 
-    /**
-     * HALAMAN 3: RIWAYAT (HISTORY)
-     * Daftar semua approval/rejection yang sudah dilakukan mentor
-     */
     public function history()
     {
         $user = Auth::user();
-
-        // Ambil submission yang SUDAH diproses (Approved/Rejected)
-        // Kita bisa pakai mentor_id di table submission (jika ada) atau filter by group
         $mentoredGroupIds = Group::where('mentor_id', $user->id)->pluck('id');
 
         $histories = ChallengeSubmission::whereIn('group_id', $mentoredGroupIds)
             ->whereIn('status', ['approved', 'rejected'])
             ->with(['group', 'challenge'])
             ->orderBy('updated_at', 'desc')
-            ->paginate(10); // Pakai pagination biar rapi
+            ->paginate(10);
 
         return view('mentor.history', compact('histories'));
     }
 
-    // --- LOGIKA APPROVE/REJECT (SAMA SEPERTI SEBELUMNYA) ---
+    // --- PERBAIKAN LOGIC APPROVE AGAR MASUK HISTORY ---
     public function approve($id)
     {
         $submission = ChallengeSubmission::with(['group', 'challenge'])->findOrFail($id);
@@ -104,19 +80,28 @@ class MentorDashboardController extends Controller
         DB::transaction(function () use ($submission) {
             $submission->update([
                 'status' => 'approved',
-                'mentor_feedback' => 'Great Job!',
+                'mentor_feedback' => 'Great Job! Misi Diterima.',
                 'approved_at' => now()
             ]);
 
-            // Logic Saldo (Tanpa Pengali)
+            // Logic Saldo (Reward masuk ke Cash/Dompet)
             $reward = $submission->challenge->price;
             $submission->group->increment('squid_dollar', $reward);
 
-            // Opsional: Catat Transaksi (Jika tabel transactions ada)
-            // Transaction::create([...]);
+            // [FIX] CATAT KE TRANSAKSI AGAR MUNCUL DI HISTORY
+            Transaction::create([
+                'event_id' => $submission->event_id,
+                'from_type' => 'system', // Dari sistem
+                'from_id' => 0,
+                'to_type' => 'group',
+                'to_id' => $submission->group_id, // Ke Kelompok
+                'amount' => $reward,
+                'reason' => 'CHALLENGE_REWARD',
+                'description' => 'Reward Misi: ' . $submission->challenge->nama
+            ]);
         });
 
-        return back()->with('success', 'Approved!');
+        return back()->with('success', 'Approved! Saldo & History bertambah.');
     }
 
     public function reject(Request $request, $id)

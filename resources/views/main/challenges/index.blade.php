@@ -6,11 +6,9 @@
 <style>
     /* --- 1. HEADER SECTION (SQUID TEAL THEME) --- */
     .challenge-header {
-        /* Gradasi Hijau Teal Khas */
         background: linear-gradient(135deg, #00a79d 0%, #00897b 100%);
         border-bottom-left-radius: 40px;
         border-bottom-right-radius: 40px;
-        /* Padding disamakan dengan Cases (120px bawah) */
         padding: 40px 25px 120px 25px;
         color: white;
         text-align: center;
@@ -19,12 +17,11 @@
         box-shadow: 0 10px 30px rgba(0, 167, 157, 0.4);
     }
 
-    /* --- 2. FLOATING TIMER CARD (DIMENSI SAMA DENGAN CASES) --- */
+    /* --- 2. FLOATING TIMER CARD --- */
     .timer-card {
         background: white;
         border-radius: 20px;
         padding: 15px 25px;
-        /* Margin negative disamakan (-85px) agar posisi floating pas */
         margin: -85px 20px 30px 20px;
         box-shadow: 0 15px 40px rgba(0, 167, 157, 0.15);
         position: relative;
@@ -37,7 +34,7 @@
         font-size: 0.7rem;
         font-weight: 800;
         letter-spacing: 2px;
-        color: #00695c; /* Hijau Tua */
+        color: #00695c;
         text-transform: uppercase;
         display: block;
         margin-bottom: 5px;
@@ -46,8 +43,8 @@
     .timer-digits {
         font-family: 'Courier New', Courier, monospace;
         font-weight: 900;
-        color: #004d40; /* Hijau Sangat Tua */
-        font-size: 2.5rem; /* Ukuran font disamakan dengan Cases */
+        color: #004d40;
+        font-size: 2.5rem;
         line-height: 1;
         letter-spacing: -1px;
     }
@@ -82,12 +79,10 @@
 
     .difficulty-btn:active { transform: scale(0.95); }
 
-    /* Tier Styles */
     .btn-tier-1 { background: linear-gradient(145deg, #f0fdf4 0%, #fff 100%); border: 1px solid #bbf7d0; color: #166534; }
     .btn-tier-2 { background: linear-gradient(145deg, #fffbeb 0%, #fff 100%); border: 1px solid #fde68a; color: #b45309; }
     .btn-tier-3 { background: linear-gradient(145deg, #fef2f2 0%, #fff 100%); border: 1px solid #fecaca; color: #991b1b; }
 
-    /* Disabled State */
     .difficulty-btn.disabled {
         opacity: 0.6;
         filter: grayscale(1);
@@ -115,11 +110,11 @@
     .active-challenge-card {
         margin: 0 20px 15px 20px;
         background: white;
-        border-radius: 18px; /* Radius disamakan style cards */
+        border-radius: 18px;
         padding: 20px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.03);
         border: 1px solid #e0f2f1;
-        border-left: 5px solid #00a79d; /* Default Teal */
+        border-left: 5px solid #00a79d;
         position: relative;
         overflow: hidden;
     }
@@ -137,7 +132,7 @@
         background: #e0f2f1; padding: 4px 8px; border-radius: 6px;
     }
 
-    /* Upload Box Style (Sama dengan Cases) */
+    /* Upload Box Style */
     .upload-box {
         border: 2px dashed #00a79d;
         background: #e0f2f1;
@@ -158,7 +153,6 @@
         <h2 class="fw-bold mb-0 text-white">SQUID CHALLENGES</h2>
         <p class="text-white opacity-75 small mb-0 fw-bold">High Risk, High Reward.</p>
 
-        {{-- Hiasan Background --}}
         <i class='bx bx-joystick text-white position-absolute' style="font-size: 8rem; top: -10px; left: -20px; opacity: 0.1; transform: rotate(-15deg);"></i>
         <i class='bx bx-target-lock text-white position-absolute' style="font-size: 6rem; bottom: 20px; right: -20px; opacity: 0.1; transform: rotate(15deg);"></i>
     </div>
@@ -178,14 +172,13 @@
 
     @if($isOpened)
 
-        {{-- 3. PILIHAN CHALLENGE (BUTTONS GRID) --}}
+        {{-- 3. PILIHAN CHALLENGE --}}
         <div class="d-flex justify-content-between align-items-center px-4 mb-3">
             <h6 class="fw-bold text-dark m-0 ps-2 border-start border-4 border-primary">Ambil Misi Baru</h6>
             <span class="badge bg-label-primary rounded-pill">{{ $canTakeMore ? 'Slot Tersedia' : 'Slot Penuh' }}</span>
         </div>
 
         <div class="difficulty-grid">
-            {{-- TIER 1: 300K --}}
             <form action="{{ route('main.challenges.take') }}" method="POST" class="h-100">
                 @csrf
                 <input type="hidden" name="price" value="300000">
@@ -195,7 +188,6 @@
                 </button>
             </form>
 
-            {{-- TIER 2: 500K --}}
             <form action="{{ route('main.challenges.take') }}" method="POST" class="h-100">
                 @csrf
                 <input type="hidden" name="price" value="500000">
@@ -205,7 +197,6 @@
                 </button>
             </form>
 
-            {{-- TIER 3: 700K --}}
             <form action="{{ route('main.challenges.take') }}" method="POST" class="h-100">
                 @csrf
                 <input type="hidden" name="price" value="700000">
@@ -223,29 +214,27 @@
         </div>
 
         @forelse($myActiveChallenges as $submission)
-            {{-- Logic warna border berdasarkan status --}}
             @php
-                $borderColor = '#00a79d'; // Default Teal (Active)
+                $borderColor = '#00a79d';
                 $statusText = 'ON PROGRESS';
                 $statusClass = 'bg-label-info';
 
                 if($submission->status == 'pending') {
-                    $borderColor = '#ffab00'; // Warning
+                    $borderColor = '#ffab00';
                     $statusText = 'REVIEWING';
                     $statusClass = 'bg-label-warning';
                 } elseif($submission->status == 'rejected') {
-                    $borderColor = '#ff3e1d'; // Red
+                    $borderColor = '#ff3e1d';
                     $statusText = 'REVISI';
                     $statusClass = 'bg-label-danger';
                 } elseif($submission->status == 'approved') {
-                    $borderColor = '#71dd37'; // Green
+                    $borderColor = '#71dd37';
                     $statusText = 'SELESAI';
                     $statusClass = 'bg-label-success';
                 }
             @endphp
 
             <div class="active-challenge-card" style="border-left-color: {{ $borderColor }};">
-                {{-- Status Badge --}}
                 <span class="status-badge {{ $statusClass }}">{{ $statusText }}</span>
 
                 <div class="mb-2">
@@ -258,14 +247,12 @@
                 </p>
 
                 <div class="d-flex gap-2">
-                    {{-- Tombol PDF --}}
                     @if($submission->challenge->file_pdf)
                         <a href="{{ asset('storage/'.$submission->challenge->file_pdf) }}" target="_blank" class="btn btn-sm btn-label-secondary rounded-pill fw-bold">
                             <i class='bx bxs-file-pdf me-1'></i> SOAL
                         </a>
                     @endif
 
-                    {{-- Tombol Action --}}
                     @if($submission->status == 'active')
                         <button class="btn btn-sm btn-primary rounded-pill px-3 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#submitModal{{ $submission->id }}">
                             <i class='bx bx-upload me-1'></i> SUBMIT JAWABAN
@@ -301,15 +288,17 @@
                               onsubmit="this.querySelector('button[type=submit]').disabled = true; this.querySelector('.btn-text').classList.add('d-none'); this.querySelector('.btn-loader').classList.remove('d-none');">
                             @csrf
                             <div class="modal-body px-4 pt-3 pb-4">
-                                <p class="small text-muted mb-3">Upload jawaban Anda berupa file atau link GDrive.</p>
+                                <p class="small text-muted mb-3">Upload jawaban Anda berupa file (Gambar/PDF) atau link GDrive.</p>
 
                                 <div class="mb-3">
                                     <label class="form-label small fw-bold text-muted">Upload File</label>
                                     <div class="upload-box">
                                         <i class='bx bxs-cloud-upload fs-1 text-primary mb-2'></i>
                                         <h6 class="fw-bold text-dark mb-0">Tap untuk Upload</h6>
-                                        <small class="text-muted">PDF, DOC, ZIP</small>
-                                        <input type="file" name="file" class="upload-input">
+                                        {{-- UPDATE LABEL --}}
+                                        <small class="text-muted">PDF, DOC, ZIP, JPG, PNG</small>
+                                        {{-- UPDATE ACCEPT ATTRIBUTE --}}
+                                        <input type="file" name="file" class="upload-input" accept=".pdf,.doc,.docx,.zip,.jpg,.jpeg,.png">
                                     </div>
                                 </div>
 
@@ -348,7 +337,7 @@
 
     @endif
 
-    <div style="height: 80px;"></div> {{-- Spacer Bottom Nav --}}
+    <div style="height: 80px;"></div>
 </div>
 @endsection
 
@@ -372,7 +361,7 @@
                 if(el) {
                     el.innerHTML = "WAKTU HABIS";
                     el.style.color = "#ff3e1d";
-                    el.style.fontSize = "2rem"; // Kecilkan dikit kalau teks panjang
+                    el.style.fontSize = "2rem";
                 }
                 return;
             }

@@ -30,7 +30,6 @@ class ChallengeController extends Controller
         $now = Carbon::now();
         $isOpened = false;
 
-        // Asumsi kolom waktu di tabel event: challenge_start_time & challenge_end_time
         if ($event->challenge_start_time && $event->challenge_end_time) {
             $start = Carbon::parse($event->challenge_start_time);
             $end = Carbon::parse($event->challenge_end_time);
@@ -42,14 +41,14 @@ class ChallengeController extends Controller
 
         // 3. Ambil Challenge Group saat ini
         $myActiveChallenges = ChallengeSubmission::where('group_id', $group->id)
-                                ->whereIn('status', ['active', 'pending', 'rejected']) // Rejected bisa di resubmit/ulang
+                                ->whereIn('status', ['active', 'pending', 'rejected'])
                                 ->with('challenge')
                                 ->get();
 
         $slotUsed = $myActiveChallenges->whereIn('status', ['active', 'pending'])->count();
         $canTakeMore = $slotUsed < 2;
 
-        // Cek Role User di Grup (untuk tombol "Ambil Challenge")
+        // Cek Role User di Grup
         $isCaptain = ($group->captain_id == $user->id || $group->cocaptain_id == $user->id);
 
         return view('main.challenges.index', compact(
@@ -61,7 +60,7 @@ class ChallengeController extends Controller
     public function take(Request $request)
     {
         $user = Auth::user();
-        $price = $request->price; // 300000, 500000, atau 700000
+        $price = $request->price;
 
         $event = Event::where('is_active', true)->firstOrFail();
         $membership = GroupMember::where('user_id', $user->id)->where('event_id', $event->id)->firstOrFail();
@@ -81,7 +80,6 @@ class ChallengeController extends Controller
         }
 
         // Randomizer Challenge
-        // Ambil challenge berdasarkan harga, relasi event, dan yang BELUM pernah diselesaikan/sedang dikerjakan grup ini
         $takenChallengeIds = ChallengeSubmission::where('group_id', $group->id)
                                 ->pluck('challenge_id');
 
@@ -103,7 +101,7 @@ class ChallengeController extends Controller
             'group_id' => $group->id,
             'challenge_id' => $randomChallenge->id,
             'status' => 'active',
-            'user_id' => null // Belum ada yang submit
+            'user_id' => null
         ]);
 
         return back()->with('success', 'Challenge berhasil diambil! Semangat mengerjakannya.');
@@ -114,17 +112,20 @@ class ChallengeController extends Controller
     {
         $request->validate([
             'submission_text' => 'nullable|string',
-            'file' => 'nullable|mimes:pdf,doc,docx,zip,jpg,png|max:10240', // Max 10MB
+            'file' => 'nullable|mimes:pdf,doc,docx,zip,jpg,jpeg,png|max:10240',
         ]);
 
         if(!$request->submission_text && !$request->hasFile('file')){
-             return back()->with('error', 'Harap lampirkan file atau link/text jawaban.');
+             return back()->with('error', 'Harap lampirkan file (Gambar/PDF) atau link jawaban.');
         }
 
-        $submission = ChallengeSubmission::where('id', $submissionId)->where('status', 'active')->firstOrFail();
+        // PERBAIKAN: Gunakan whereIn agar status 'rejected' bisa disubmit ulang
+        $submission = ChallengeSubmission::where('id', $submissionId)
+                        ->whereIn('status', ['active', 'rejected'])
+                        ->firstOrFail();
 
         // Upload File
-        $filePath = null;
+        $filePath = $submission->file_path; // Default file lama
         if ($request->hasFile('file')) {
             $file = $request->file('file');
             $filename = time() . '_' . $file->getClientOriginalName();
@@ -132,10 +133,11 @@ class ChallengeController extends Controller
         }
 
         $submission->update([
-            'user_id' => Auth::id(), // Pencatat siapa yang submit
+            'user_id' => Auth::id(),
             'submission_text' => $request->submission_text,
             'file_path' => $filePath,
-            'status' => 'pending' // Masuk antrian review mentor
+            'status' => 'pending', // Reset status jadi pending agar mentor review lagi
+            'mentor_feedback' => null // Hapus feedback lama (opsional)
         ]);
 
         return back()->with('success', 'Jawaban dikirim! Menunggu review Mentor.');

@@ -62,17 +62,12 @@ class CaseController extends Controller
             ->pluck('guideline_id')
             ->toArray();
 
-        // Loop untuk cek status kepemilikan DAN STOK
         $allGuidelines->each(function($gl) use ($ownedGuidelineIds, $event) {
             $gl->is_owned = in_array($gl->id, $ownedGuidelineIds);
-
-            // HITUNG STOK
             $soldCount = DB::table('group_guidelines')
                 ->where('event_id', $event->id)
                 ->where('guideline_id', $gl->id)
                 ->count();
-
-            // Stok Tersedia = Batas (5) - Terjual
             $gl->stock = max(0, 5 - $soldCount);
         });
 
@@ -83,7 +78,7 @@ class CaseController extends Controller
         ));
     }
 
-    // LOGIC BELI MENGGUNAKAN BANK
+    // LOGIC BELI MENGGUNAKAN CASH (SQUID_DOLLAR)
     public function buyGuideline(Request $request)
     {
         $request->validate([
@@ -95,11 +90,10 @@ class CaseController extends Controller
         $membership = GroupMember::where('user_id', $user->id)->where('event_id', $event->id)->firstOrFail();
         $group = $membership->group;
 
-        // 1. Ambil Data Guideline
         $guideline = Guideline::find($request->guideline_id);
         $price = $guideline->price;
 
-        // 2. CEK STOK
+        // 1. CEK STOK
         $soldCount = DB::table('group_guidelines')
             ->where('event_id', $event->id)
             ->where('guideline_id', $guideline->id)
@@ -109,13 +103,13 @@ class CaseController extends Controller
             return back()->with('error', 'Gagal! Dokumen ini sudah habis terjual (Sold Out).');
         }
 
-        // 3. CEK SALDO BANK (BANK BALANCE)
-        // Pastikan menggunakan bank_balance, bukan squid_dollar
-        if ($group->bank_balance < $price) {
-            return back()->with('error', 'Saldo Bank tidak mencukupi! ($'.number_format($price).')');
+        // 2. CEK SALDO CASH (SQUID DOLLAR)
+        // KITA UBAH KE SQUID_DOLLAR AGAR SESUAI DATABASE
+        if ($group->squid_dollar < $price) {
+            return back()->with('error', 'Saldo Cash tidak mencukupi! ($'.number_format($price).')');
         }
 
-        // 4. Cek Kepemilikan
+        // 3. Cek Kepemilikan
         $alreadyOwn = DB::table('group_guidelines')
             ->where('group_id', $group->id)
             ->where('guideline_id', $guideline->id)
@@ -125,9 +119,8 @@ class CaseController extends Controller
             return back()->with('error', 'Tim kamu sudah memiliki dokumen ini!');
         }
 
-        // 5. Proses Transaksi
+        // 4. Proses Transaksi
         DB::transaction(function () use ($group, $event, $guideline, $price) {
-            // Double Check Stok
             $currentSold = DB::table('group_guidelines')
                 ->where('event_id', $event->id)
                 ->where('guideline_id', $guideline->id)
@@ -138,10 +131,9 @@ class CaseController extends Controller
                 throw new \Exception('Stok habis saat proses transaksi.');
             }
 
-            // KURANGI SALDO BANK
-            $group->decrement('bank_balance', $price);
+            // KURANGI SALDO CASH (SQUID DOLLAR)
+            $group->decrement('squid_dollar', $price);
 
-            // Masukkan ke Inventory
             DB::table('group_guidelines')->insert([
                 'event_id' => $event->id,
                 'group_id' => $group->id,
@@ -151,7 +143,6 @@ class CaseController extends Controller
                 'updated_at' => now(),
             ]);
 
-            // Catat Riwayat Transaksi
             Transaction::create([
                 'event_id' => $event->id,
                 'from_type' => 'group',
@@ -160,14 +151,13 @@ class CaseController extends Controller
                 'to_id' => 0,
                 'amount' => $price,
                 'reason' => 'BUY_GUIDELINE',
-                'description' => 'Membeli Dokumen Rahasia via Bank ('.$guideline->title.')'
+                'description' => 'Membeli Dokumen Rahasia ('.$guideline->title.')'
             ]);
         });
 
-        return back()->with('success', 'Berhasil membeli dokumen! Saldo Bank berkurang.');
+        return back()->with('success', 'Berhasil membeli dokumen!');
     }
 
-    // Logic Submit (Tidak ada perubahan)
     public function submit(Request $request, $caseId)
     {
         $request->validate([
@@ -230,6 +220,7 @@ class CaseController extends Controller
                 'updated_at' => now(),
             ]);
 
+            // Reward masuk ke Cash/Squid Dollar
             $group->increment('squid_dollar', $reward);
 
             Transaction::create([

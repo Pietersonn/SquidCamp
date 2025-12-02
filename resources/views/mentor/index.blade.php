@@ -122,7 +122,7 @@
 
             {{-- Profile Icon --}}
             <div class="avatar bg-white bg-opacity-25 rounded-circle p-1">
-                <img src="{{ Auth::user()->profile_photo_url ?? asset('assets/img/avatars/1.png') }}" alt="Avatar" class="rounded-circle w-100 h-100">
+                <img src="{{ Auth::user()->avatar ? asset('storage/'.Auth::user()->avatar) : asset('assets/img/avatars/1.png') }}" alt="Avatar" class="rounded-circle w-100 h-100" style="object-fit: cover;">
             </div>
         </div>
 
@@ -170,7 +170,7 @@
                         {{ $sub->group->name ?? 'Unknown Group' }}
                     </span>
                     <span class="submit-time d-flex align-items-center">
-                        <i class='bx bx-time-five me-1'></i> {{ $sub->created_at->diffForHumans() }}
+                        <i class='bx bx-time-five me-1'></i> {{ $sub->updated_at->diffForHumans() }}
                     </span>
                 </div>
 
@@ -201,17 +201,37 @@
                     @endif
 
                     @if($sub->file_path)
-                        <div class="file-preview">
-                            <div class="bg-white p-2 rounded shadow-sm text-danger">
-                                <i class='bx bxs-file-pdf fs-2'></i>
-                            </div>
-                            <div class="overflow-hidden">
-                                <small class="d-block text-muted fw-bold" style="font-size: 0.7rem;">FILE UPLOAD</small>
-                                <a href="{{ asset('storage/'.$sub->file_path) }}" target="_blank" class="fw-bold text-dark text-decoration-none d-block text-truncate">
-                                    Lihat File Lampiran
+                        @php
+                            $extension = pathinfo($sub->file_path, PATHINFO_EXTENSION);
+                            $isImage = in_array(strtolower($extension), ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+                        @endphp
+
+                        @if($isImage)
+                            {{-- TAMPILAN JIKA FILE ADALAH GAMBAR (FOTO HP) --}}
+                            <div class="mt-3">
+                                <small class="d-block text-muted fw-bold mb-2" style="font-size: 0.7rem;">FOTO BUKTI:</small>
+                                <a href="{{ asset('storage/'.$sub->file_path) }}" target="_blank">
+                                    <img src="{{ asset('storage/'.$sub->file_path) }}"
+                                         class="img-fluid rounded border shadow-sm"
+                                         style="max-height: 350px; width: 100%; object-fit: cover;"
+                                         alt="Bukti Submission">
                                 </a>
+                                <small class="text-center d-block mt-1 text-muted" style="font-size: 0.65rem;">(Klik gambar untuk memperbesar)</small>
                             </div>
-                        </div>
+                        @else
+                            {{-- TAMPILAN JIKA FILE ADALAH DOKUMEN (PDF/ZIP) --}}
+                            <div class="file-preview">
+                                <div class="bg-white p-2 rounded shadow-sm text-danger">
+                                    <i class='bx bxs-file-pdf fs-2'></i>
+                                </div>
+                                <div class="overflow-hidden">
+                                    <small class="d-block text-muted fw-bold" style="font-size: 0.7rem;">FILE DOKUMEN</small>
+                                    <a href="{{ asset('storage/'.$sub->file_path) }}" target="_blank" class="fw-bold text-dark text-decoration-none d-block text-truncate">
+                                        Download / Lihat File
+                                    </a>
+                                </div>
+                            </div>
+                        @endif
                     @endif
                 </div>
 
@@ -221,7 +241,7 @@
                         <i class='bx bx-x-circle fs-5'></i> REJECT
                     </button>
 
-                    {{-- Form Approve Langsung (Sesuai Controller yang dibuat sebelumnya) --}}
+                    {{-- Form Approve Langsung --}}
                     <form action="{{ route('mentor.submission.approve', $sub->id) }}" method="POST" class="w-100">
                         @csrf
                         <button type="submit" class="btn-action btn-approve w-100">
@@ -247,7 +267,7 @@
                             @csrf
                             <div class="modal-body px-4 pt-2 pb-4">
                                 <p class="text-muted small text-center mb-3">Berikan alasan agar kelompok bisa memperbaiki.</p>
-                                <textarea name="feedback" class="form-control bg-light border-0" rows="3" placeholder="Contoh: Link tidak bisa dibuka..." required></textarea>
+                                <textarea name="feedback" class="form-control bg-light border-0" rows="3" placeholder="Contoh: Foto buram / Link error..." required></textarea>
 
                                 <div class="d-grid mt-3 gap-2">
                                     <button type="submit" class="btn btn-danger rounded-pill fw-bold">Kirim Penolakan</button>

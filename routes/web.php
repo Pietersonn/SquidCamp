@@ -139,13 +139,10 @@ Route::middleware(['auth', 'role:user'])->group(function () {
     // --- MAIN FEATURES ---
     Route::prefix('main')->as('main.')->group(function () {
 
-        // 1. Route Thanks Page (BEBAS dari CheckEventStatus)
-        //    Ditaruh di luar group middleware status agar tidak looping redirect saat event selesai.
+        // 1. Route Thanks Page (Diletakkan di luar middleware Status Event agar tidak looping redirect)
         Route::get('/thanks', [MainDashboardController::class, 'thanks'])->name('thanks');
 
-        // 2. Group Dashboard & Fitur Game (DIPROTEKSI Middleware)
-        //    - CheckEventMembership: Pastikan punya tim.
-        //    - CheckEventStatus: Pastikan event LIVE (sudah di-Start admin).
+        // 2. Fitur Dashboard & Game (Dijaga ketat: Harus Punya Tim & Event Harus Sudah START)
         Route::middleware([CheckEventMembership::class, CheckEventStatus::class])->group(function () {
 
             Route::get('/dashboard', [MainDashboardController::class, 'index'])->name('dashboard');
