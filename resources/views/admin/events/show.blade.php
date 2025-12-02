@@ -57,13 +57,8 @@
       backdrop-filter: blur(5px);
     }
 
-    .status-active {
-      color: var(--squid-primary);
-    }
-
-    .status-inactive {
-      color: #858796;
-    }
+    .status-active { color: var(--squid-primary); }
+    .status-inactive { color: #858796; }
 
     /* --- PHASE TIMELINE --- */
     .phase-container {
@@ -71,7 +66,6 @@
       border-radius: 12px;
       padding: 15px;
       margin-top: -1px;
-      /* Connect visually */
     }
 
     .phase-step {
@@ -145,9 +139,7 @@
       transition: 0.3s;
     }
 
-    .menu-card:hover::before {
-      opacity: 1;
-    }
+    .menu-card:hover::before { opacity: 1; }
 
     .menu-icon-box {
       width: 50px;
@@ -225,14 +217,8 @@
       justify-content: space-between;
       transition: 0.2s;
     }
-
-    .rank-item:last-child {
-      border-bottom: none;
-    }
-
-    .rank-item:hover {
-      background-color: #f9f9f9;
-    }
+    .rank-item:last-child { border-bottom: none; }
+    .rank-item:hover { background-color: #f9f9f9; }
 
     .rank-badge {
       width: 24px;
@@ -246,24 +232,10 @@
       margin-right: 10px;
       color: white;
     }
-
-    .rank-1 {
-      background: #FFD700;
-      box-shadow: 0 2px 5px rgba(255, 215, 0, 0.4);
-    }
-
-    .rank-2 {
-      background: #C0C0C0;
-    }
-
-    .rank-3 {
-      background: #CD7F32;
-    }
-
-    .rank-other {
-      background: #eee;
-      color: #777;
-    }
+    .rank-1 { background: #FFD700; box-shadow: 0 2px 5px rgba(255, 215, 0, 0.4); }
+    .rank-2 { background: #C0C0C0; }
+    .rank-3 { background: #CD7F32; }
+    .rank-other { background: #eee; color: #777; }
   </style>
 @endsection
 
@@ -314,16 +286,20 @@
             @php
               $phases = [
                   'Challenge' => [
-                      'start' => $event->challenge_start_time,
-                      'end' => $event->challenge_end_time,
+                      'start' => $event->challenge_start_time ? \Carbon\Carbon::parse($event->challenge_start_time) : null,
+                      'end' => $event->challenge_end_time ? \Carbon\Carbon::parse($event->challenge_end_time) : null,
                       'icon' => 'bx-target-lock',
                   ],
                   'Case' => [
-                      'start' => $event->case_start_time,
-                      'end' => $event->case_end_time,
+                      'start' => $event->case_start_time ? \Carbon\Carbon::parse($event->case_start_time) : null,
+                      'end' => $event->case_end_time ? \Carbon\Carbon::parse($event->case_end_time) : null,
                       'icon' => 'bx-briefcase',
                   ],
-                  'Show' => ['start' => $event->show_start_time, 'end' => $event->show_end_time, 'icon' => 'bx-tv'],
+                  'Show' => [
+                      'start' => $event->show_start_time ? \Carbon\Carbon::parse($event->show_start_time) : null,
+                      'end' => $event->show_end_time ? \Carbon\Carbon::parse($event->show_end_time) : null,
+                      'icon' => 'bx-tv'
+                  ],
               ];
               $now = now();
             @endphp
@@ -364,59 +340,46 @@
           $quickMenus = [
               [
                   'route' => 'admin.events.edit',
-                  'icon' => 'bx-cog',
-                  'label' => 'Settings',
-                  'desc' => 'Edit detail & timer',
-                  'color' => 'secondary',
+                  'icon' => 'bx-cog', 'label' => 'Settings', 'desc' => 'Edit detail & timer', 'color' => 'secondary',
               ],
               [
                   'route' => 'admin.events.groups.index',
-                  'icon' => 'bx-group',
-                  'label' => 'Groups',
-                  'desc' => 'Kelola tim & anggota',
-                  'color' => 'primary',
+                  'icon' => 'bx-group', 'label' => 'Groups', 'desc' => 'Kelola tim & anggota', 'color' => 'primary',
               ],
               [
                   'route' => 'admin.events.mentors.index',
-                  'icon' => 'bx-user-voice',
-                  'label' => 'Mentors',
-                  'desc' => 'Assign mentor ke tim',
-                  'color' => 'info',
+                  'icon' => 'bx-user-voice', 'label' => 'Mentors', 'desc' => 'Assign mentor ke tim', 'color' => 'info',
               ],
               [
                   'route' => 'admin.events.challenges.index',
-                  'icon' => 'bx-joystick',
-                  'label' => 'Challenge',
-                  'desc' => 'Squid Challenge',
-                  'color' => 'warning',
+                  'icon' => 'bx-joystick', 'label' => 'Challenge', 'desc' => 'Squid Challenge', 'color' => 'warning',
               ],
               [
                   'route' => 'admin.events.cases.index',
-                  'icon' => 'bx-briefcase-alt-2',
-                  'label' => 'Case',
-                  'desc' => 'Squid Case',
-                  'color' => 'success',
+                  'icon' => 'bx-briefcase-alt-2', 'label' => 'Case', 'desc' => 'Squid Case', 'color' => 'success',
               ],
               [
                   'route' => 'admin.events.guidelines.index',
-                  'icon' => 'bx-book-open',
-                  'label' => 'Guidelines',
-                  'desc' => 'Materi & Aturan',
-                  'color' => 'danger',
+                  'icon' => 'bx-book-open', 'label' => 'Guidelines', 'desc' => 'Materi & Aturan', 'color' => 'danger',
               ],
               [
                   'route' => 'admin.events.investors.index',
-                  'icon' => 'bx-line-chart',
-                  'label' => 'Investors',
-                  'desc' => 'Modal & Investasi',
-                  'color' => 'dark',
+                  'icon' => 'bx-line-chart', 'label' => 'Investors', 'desc' => 'Modal & Investasi', 'color' => 'dark',
               ],
+              // --- TAMBAHAN QUICK ACCESS ---
               [
-                  'route' => 'admin.events.squidbank.index', // Route ke controller SquidBank
-                  'icon'  => 'bx-bank',                      // Ikon Bank
+                  'route' => 'admin.events.squidbank.index',
+                  'icon'  => 'bx-dollar-circle',
                   'label' => 'Squid Bank',
                   'desc'  => 'Cek Mutasi & Cadangan',
-                  'color' => 'success',                      // Warna Hijau
+                  'color' => 'success',
+              ],
+              [
+                  'route' => 'admin.events.case-submission.index', // Menuju CaseSubmissionController
+                  'icon'  => 'bx-list-check',
+                  'label' => 'Case Submissions',
+                  'desc'  => 'Cek Jawaban Peserta',
+                  'color' => 'primary',
               ],
           ];
         @endphp
@@ -449,13 +412,10 @@
         </div>
         <div class="card-body p-4 text-center">
           @php
-            $countdownTime = null;
-            $phaseLabel = null;
+            $countdownTime = null; $phaseLabel = null;
             foreach ($phases as $label => $times) {
                 if ($times['end'] && now() < $times['end']) {
-                    $countdownTime = $times['end'];
-                    $phaseLabel = $label;
-                    break;
+                    $countdownTime = $times['end']; $phaseLabel = $label; break;
                 }
             }
           @endphp
@@ -481,7 +441,7 @@
         <div class="widget-card">
           <div class="widget-header">
             <i class="bx bx-trophy me-2 text-warning"></i>
-            <span>Top Groups</span>
+            <span>Top Groups (Total Wealth)</span>
           </div>
           <div class="card-body p-0">
             <div class="list-group list-group-flush">
@@ -490,16 +450,12 @@
                   <div class="d-flex align-items-center">
                     @php
                       $rankClass = 'rank-other';
-                      if ($index == 0) {
-                          $rankClass = 'rank-1';
-                      } elseif ($index == 1) {
-                          $rankClass = 'rank-2';
-                      } elseif ($index == 2) {
-                          $rankClass = 'rank-3';
-                      }
+                      if ($index == 0) $rankClass = 'rank-1';
+                      elseif ($index == 1) $rankClass = 'rank-2';
+                      elseif ($index == 2) $rankClass = 'rank-3';
                     @endphp
                     <div class="rank-badge {{ $rankClass }}">
-                      {{ $index + 1 }}
+                      {{ $loop->iteration }}
                     </div>
                     <div>
                       <span class="fw-bold text-dark d-block">{{ $group->name }}</span>
@@ -507,14 +463,13 @@
                     </div>
                   </div>
 
-                  {{-- UPDATED: Menampilkan TOTAL WEALTH --}}
                   <div class="text-end">
                       <span class="badge bg-label-success fw-bold">
                         ${{ number_format($group->total_wealth, 0, ',', '.') }}
                       </span>
                       <div class="text-muted small" style="font-size: 0.6rem; line-height: 1.1; margin-top: 2px;">
-                          Bank: {{ number_format($group->squid_dollar) }}<br>
-                          Cash: {{ number_format($group->bank_balance) }}
+                          B: ${{ \Illuminate\Support\Str::limit(number_format($group->squid_dollar), 8) }}<br>
+                          C: ${{ \Illuminate\Support\Str::limit(number_format($group->bank_balance), 8) }}
                       </div>
                   </div>
                 </div>
@@ -522,8 +477,7 @@
             </div>
           </div>
           <div class="card-footer bg-light text-center p-2">
-            <a href="{{ route('admin.events.groups.index', $event->id) }}" class="small text-primary fw-bold">Lihat Semua
-              Leaderboard &rarr;</a>
+            <a href="{{ route('admin.events.groups.index', $event->id) }}" class="small text-primary fw-bold">Lihat Semua Leaderboard &rarr;</a>
           </div>
         </div>
       @endif
@@ -537,19 +491,15 @@
     document.addEventListener('DOMContentLoaded', function() {
       const countdownEl = document.getElementById('event-countdown');
       if (!countdownEl) return;
-
       const endTime = new Date(countdownEl.dataset.countdown).getTime();
 
       function updateCountdown() {
         const now = new Date().getTime();
         let distance = endTime - now;
-
         if (distance <= 0) {
           countdownEl.innerHTML = "<span class='text-danger'>WAKTU HABIS!</span>";
-          clearInterval(interval);
           return;
         }
-
         const totalHours = Math.floor(distance / (1000 * 60 * 60));
         const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((distance % (1000 * 60)) / 1000);
@@ -557,12 +507,10 @@
         const h = totalHours < 10 ? "0" + totalHours : totalHours;
         const m = minutes < 10 ? "0" + minutes : minutes;
         const s = seconds < 10 ? "0" + seconds : seconds;
-
         countdownEl.innerHTML = `${h}h ${m}m ${s}s`;
       }
-
       updateCountdown();
-      const interval = setInterval(updateCountdown, 1000);
+      setInterval(updateCountdown, 1000);
     });
   </script>
 @endpush

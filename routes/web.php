@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\EventGuidelineController;
 use App\Http\Controllers\Admin\ChallengeController;
 use App\Http\Controllers\Admin\GuidelineController;
 use App\Http\Controllers\Admin\CaseController;
+use App\Http\Controllers\Admin\CaseSubmissionController;
 use App\Http\Controllers\Admin\SquidBankController;
 use App\Http\Controllers\Mentor\MentorDashboardController;
 use App\Http\Controllers\Investor\InvestorDashboardController;
@@ -72,6 +73,7 @@ Route::prefix('admin')->as('admin.')->middleware(['auth', 'role:admin'])->group(
     Route::resource('guidelines', EventGuidelineController::class);
     Route::resource('cases', EventCaseController::class);
     Route::resource('squidbank', SquidBankController::class);
+    Route::resource('case-submission', CaseSubmissionController::class);
   });
 });
 
