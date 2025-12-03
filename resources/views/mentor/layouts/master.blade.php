@@ -18,7 +18,6 @@
 
   @vite([
     'resources/assets/vendor/scss/core.scss',
-    'resources/assets/vendor/scss/theme-default.scss',
     'resources/assets/css/demo.css',
     'resources/assets/vendor/libs/jquery/jquery.js',
     'resources/assets/vendor/libs/popper/popper.js',

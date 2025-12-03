@@ -33,6 +33,7 @@
   <link rel="icon" type="image/png" href="{{ asset('assets/img/logo/logo-squidcamp.png') }}" />
 
 
+
   <!-- Include Styles -->
   @include('admin/layouts/sections/styles')
 

@@ -19,7 +19,6 @@
     {{-- VITE RESOURCES --}}
     @vite([
         'resources/assets/vendor/scss/core.scss',
-        'resources/assets/vendor/scss/theme-default.scss',
         'resources/assets/vendor/libs/jquery/jquery.js',
         'resources/assets/vendor/libs/popper/popper.js',
         'resources/assets/vendor/js/bootstrap.js',

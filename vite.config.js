@@ -36,6 +36,14 @@ const FontsJsFiles = GetFilesArray('resources/assets/vendor/fonts/**/!(_)*.js');
 const FontsCssFiles = GetFilesArray('resources/assets/vendor/fonts/**/!(_)*.css');
 
 export default defineConfig({
+  server: {
+    host: true,
+    port: 5173,
+    hmr: {
+      host: '192.168.1.11', // <--- ganti sesuai IP WiFi kamu
+    },
+  },
+
   plugins: [
     laravel({
       input: [
@@ -57,17 +65,20 @@ export default defineConfig({
     html(),
     iconsPlugin()
   ],
+
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'resources')
     }
   },
+
   json: {
-    stringify: true // Helps with JSON import compatibility
+    stringify: true
   },
+
   build: {
     commonjsOptions: {
-      include: [/node_modules/] // Helps with importing CommonJS modules
+      include: [/node_modules/]
     }
   }
 });

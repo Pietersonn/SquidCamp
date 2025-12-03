@@ -8,52 +8,42 @@ use Carbon\Carbon;
 
 class EventSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        // Ambil waktu SEKARANG
         $now = Carbon::now();
 
-        // --- EVENT 1: BATCH 1 (HARI INI & AKTIF) ---
+        // --- EVENT 1 (LIVE) ---
         Event::create([
             'name' => 'SquidCamp Batch 1 (Live)',
-            // 'instansi' => 'Telkom', // <-- INI HARUS DIHAPUS KARENA KOLOMNYA SUDAH TIDAK ADA
+            'instansi' => 'Telkom Indonesia',
             'banner_image_path' => null,
             'event_date' => $now->toDateString(),
 
-            // FASE 1: CHALLENGE (Setting agar SEDANG BERJALAN)
-            // Mulai 30 menit yang lalu -> Selesai 2 jam lagi
+            // Timer
             'challenge_start_time' => $now->copy()->subMinutes(30),
             'challenge_end_time'   => $now->copy()->addHours(2),
-
-            // FASE 2: CASE (Mulai setelah Challenge selesai)
-            'case_start_time' => $now->copy()->addHours(3),
-            'case_end_time'   => $now->copy()->addHours(5),
-
-            // FASE 3: SHOW (Malam nanti)
-            'show_start_time' => $now->copy()->addHours(6),
-            'show_end_time'   => $now->copy()->addHours(8),
+            'case_start_time'      => $now->copy()->addHours(3),
+            'case_end_time'        => $now->copy()->addHours(5),
+            'show_start_time'      => $now->copy()->addHours(6),
+            'show_end_time'        => $now->copy()->addHours(8),
 
             'is_active' => true,
+            'is_finished' => false,
+
+            // MODAL AWAL ADMIN (BANK SENTRAL)
+            'central_bank_balance' => 0,
+            'central_cash_balance' => 5000000,
         ]);
 
-        // --- EVENT 2: BATCH LAMA (ARSIP) ---
+        // --- EVENT 2 (ARSIP) ---
         Event::create([
             'name' => 'SquidCamp Batch 0 (Arsip)',
-            // 'instansi' => 'Umum', // <-- INI JUGA DIHAPUS
-            'banner_image_path' => null,
+            'instansi' => 'Umum',
             'event_date' => $now->copy()->subMonth(1)->toDateString(),
-
-            'challenge_start_time' => null,
-            'challenge_end_time' => null,
-            'case_start_time' => null,
-            'case_end_time' => null,
-            'show_start_time' => null,
-            'show_end_time' => null,
-
             'is_active' => false,
+            'is_finished' => true,
+            'central_bank_balance' => 0,
+            'central_cash_balance' => 0,
         ]);
     }
 }
