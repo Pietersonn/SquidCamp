@@ -4,7 +4,10 @@
 
 @section('styles')
 <style>
-    :root { --squid-primary: #00a79d; }
+    :root {
+        --squid-primary: #00a79d;
+        --squid-gold: #ffab00; /* Warna Kuning Emas untuk Bank */
+    }
 
     .group-card {
         border: none;
@@ -51,28 +54,31 @@
         margin-bottom: 3px;
     }
 
+    /* Warna Khusus */
+    .text-bank { color: var(--squid-gold) !important; }
+    .text-cash { color: #28a745 !important; } /* Hijau Cash */
+
     /* --- CAPTAIN BOX STYLING --- */
     .captain-box {
         margin-top: 15px;
-        padding: 12px 15px; /* Padding membuat teks menjorok ke dalam */
+        padding: 12px 15px;
         background-color: #fff;
-        border: 1px dashed #d9dee3; /* Border putus-putus halus */
+        border: 1px dashed #d9dee3;
         border-radius: 10px;
         transition: all 0.3s ease;
         display: flex;
         align-items: center;
     }
 
-    /* Efek Hover pada Kartu Utama mempengaruhi Captain Box */
     .group-card:hover .captain-box {
-        border-color: #ffab00; /* Berubah jadi Emas */
+        border-color: var(--squid-gold);
         border-style: solid;
-        background-color: #fffdf5; /* Background agak kuning tipis */
-        transform: translateX(5px); /* Geser sedikit ke kanan */
+        background-color: #fffdf5;
+        transform: translateX(5px);
     }
 
     .captain-avatar-ring {
-        border: 2px solid #ffab00;
+        border: 2px solid var(--squid-gold);
         padding: 2px;
         border-radius: 50%;
     }
@@ -97,9 +103,16 @@
         <h4 class="fw-bold mb-1" style="color: #008f85;"><i class="bx bx-group me-2"></i>Groups</h4>
         <span class="text-muted">Event: {{ $event->name }}</span>
     </div>
-    <a href="{{ route('admin.events.groups.create', $event->id) }}" class="btn btn-primary" style="background-color: #00a79d; border:none;">
-        <i class="bx bx-plus me-1"></i> Buat Kelompok
-    </a>
+
+    {{-- Tombol Kembali & Buat Kelompok --}}
+    <div class="d-flex gap-2">
+        <a href="{{ route('admin.events.show', $event->id) }}" class="btn btn-outline-secondary">
+            <i class="bx bx-arrow-back me-1"></i> Kembali
+        </a>
+        <a href="{{ route('admin.events.groups.create', $event->id) }}" class="btn btn-primary" style="background-color: #00a79d; border:none;">
+            <i class="bx bx-plus me-1"></i> Buat Kelompok
+        </a>
+    </div>
 </div>
 
 <div class="row g-4">
@@ -118,15 +131,24 @@
 
         <div class="card-body d-flex flex-column p-4">
 
-            {{-- Baris 1: Uang & Mentor --}}
+            {{-- Baris 1: Keuangan (Cash & Bank) --}}
             <div class="d-flex justify-content-between align-items-start">
-                {{-- Uang --}}
                 <div>
-                    <span class="info-label text-muted">Squid Dollar</span>
-                    <h5 class="mb-0 fw-bold text-success d-flex align-items-center">
-                        <i class="bx bx-dollar-circle me-1"></i>
-                        {{ number_format($group->squid_dollar, 0, ',', '.') }}
-                    </h5>
+                    <span class="info-label text-muted mb-2">Total Keuangan</span>
+
+                    {{-- Cash (Hijau) --}}
+                    <div class="d-flex align-items-center mb-1 text-cash" title="Uang Cash">
+                        <i class="bx bx-wallet me-2 fs-5"></i>
+                        <span class="fw-bold fs-6">${{ number_format($group->squid_dollar, 0, ',', '.') }}</span>
+                        <small class="text-muted ms-1" style="font-size: 0.65rem;">(CASH)</small>
+                    </div>
+
+                    {{-- Bank (Kuning Emas) --}}
+                    <div class="d-flex align-items-center text-bank" title="Saldo Bank">
+                        <i class="bx bxs-bank me-2 fs-5"></i>
+                        <span class="fw-bold fs-6">${{ number_format($group->bank_balance, 0, ',', '.') }}</span>
+                        <small class="text-muted ms-1" style="font-size: 0.65rem;">(BANK)</small>
+                    </div>
                 </div>
 
                 {{-- Mentor --}}
@@ -140,7 +162,7 @@
                 </div>
             </div>
 
-            {{-- Baris 2: CAPTAIN (Dibuat Box Khusus) --}}
+            {{-- Baris 2: CAPTAIN --}}
             <div class="captain-box">
                 <div class="me-3">
                     @if($group->captain && $group->captain->avatar)

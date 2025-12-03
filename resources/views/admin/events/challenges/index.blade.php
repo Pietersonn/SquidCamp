@@ -1,126 +1,149 @@
 @extends('admin.layouts.contentNavbarLayout')
 
-@section('title', 'Kelola Challenge Event')
+@section('title', "Event Challenges - $event->name")
 
 @section('styles')
 <style>
     :root {
         --squid-primary: #00a79d;
-        --squid-secondary: #00d2c6;
-    }
-    /* --- HERO HEADER --- */
-    .header-event-challenge {
-        background: linear-gradient(135deg, #00a79d 0%, #00796b 100%);
-        border-radius: 16px;
-        padding: 30px;
-        color: white;
-        box-shadow: 0 10px 20px rgba(0, 167, 157, 0.2);
-        margin-bottom: 30px;
-        position: relative;
-        overflow: hidden;
-    }
-    .header-decoration {
-        position: absolute;
-        top: -20px;
-        right: -20px;
-        font-size: 10rem;
-        opacity: 0.1;
-        color: white;
-        transform: rotate(-15deg);
+        --squid-gold: #ffab00;
+        --squid-danger: #ff3e1d;
     }
 
     /* --- TABLE STYLES --- */
     .table-card {
-        border-radius: 16px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         border: none;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
         overflow: hidden;
+        background: #fff;
     }
+
     .table-header-row th {
         background-color: #f8f9fa !important;
         text-transform: uppercase;
         font-size: 0.75rem;
-        letter-spacing: 1px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
         border-bottom: 2px solid #eee;
-        color: #666;
+        color: #566a7f;
+        padding: 15px 20px;
     }
-    .challenge-row {
-        transition: all 0.2s ease;
+
+    .challenge-row td {
+        padding: 15px 20px;
+        vertical-align: middle;
+        border-bottom: 1px solid #f0f0f0;
     }
+
+    .challenge-row:last-child td {
+        border-bottom: none;
+    }
+
     .challenge-row:hover {
-        background-color: #f0fdfa !important;
-        transform: scale(1.005);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        z-index: 10;
-        position: relative;
+        background-color: #fafbfc;
     }
 
     /* --- BADGES --- */
-    .price-tag {
-        background: rgba(0, 167, 157, 0.1);
-        color: var(--squid-primary);
-        padding: 5px 12px;
-        border-radius: 20px;
+    .price-badge {
+        display: inline-block;
+        font-family: 'Courier New', monospace;
         font-weight: 700;
         font-size: 0.85rem;
-        border: 1px solid rgba(0, 167, 157, 0.2);
+        padding: 6px 12px;
+        border-radius: 6px;
+        border: 1px solid transparent;
     }
-    .action-btn {
-        width: 35px; height: 35px;
+
+    /* TIER 1: Harga Standar (Hijau) < 500k */
+    .price-normal {
+        background: #e0f2f1;
+        color: var(--squid-primary);
+        border-color: rgba(0, 167, 157, 0.2);
+    }
+
+    /* TIER 2: Harga Menengah (Kuning) >= 500k */
+    .price-medium {
+        background: #fff8e1;
+        color: var(--squid-gold);
+        border-color: rgba(255, 171, 0, 0.2);
+    }
+
+    /* TIER 3: Harga Tinggi (Merah) >= 700k */
+    .price-hard {
+        background: #ffe0db;
+        color: var(--squid-danger);
+        border-color: rgba(255, 62, 29, 0.2);
+    }
+
+    /* --- ACTION BUTTONS --- */
+    .btn-icon-soft {
+        width: 32px; height: 32px;
         display: inline-flex; align-items: center; justify-content: center;
-        border-radius: 50%;
-        transition: 0.3s;
-        color: #ff3e1d;
-        background: rgba(255, 62, 29, 0.1);
+        border-radius: 8px;
         border: none;
+        transition: all 0.2s;
+        background: transparent;
+        color: #888;
     }
-    .action-btn:hover {
-        background: #ff3e1d;
-        color: white;
-        box-shadow: 0 4px 10px rgba(255, 62, 29, 0.3);
+    .btn-icon-soft:hover {
+        background: #ffe0db;
+        color: var(--squid-danger);
+        transform: translateY(-2px);
     }
+
+    /* PDF Button */
+    .btn-file-pdf {
+        padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;
+        background: #fff0f0; color: #ff3e1d; text-decoration: none;
+        display: inline-flex; align-items: center; gap: 4px;
+        border: 1px solid #ff3e1d20;
+    }
+    .btn-file-pdf:hover { background: #ff3e1d; color: white; }
+
 </style>
 @endsection
 
 @section('content')
-<div class="container-xxl flex-grow-1 container-p-y">
 
-    {{-- 1. HERO HEADER --}}
-    <div class="header-event-challenge d-flex justify-content-between align-items-center">
-        <div style="position: relative; z-index: 2;">
-            <h3 class="fw-bold mb-1 text-white"><i class='bx bx-joystick me-2'></i> Event Challenges</h3>
-            <p class="mb-0 opacity-75">Kelola misi untuk event: <strong>{{ $event->name }}</strong></p>
-        </div>
-        <div style="position: relative; z-index: 2; display: flex; gap: 10px;">
-            <a href="{{ route('admin.events.show', $event->id) }}" class="btn btn-outline-light fw-bold shadow-sm">
-                <i class="bx bx-arrow-back me-1"></i> Kembali
-            </a>
-            <a href="{{ route('admin.events.challenges.create', $event->id) }}" class="btn btn-light text-primary fw-bold shadow-sm">
-                <i class="bx bx-plus-circle me-1"></i> Tambah Challenge
-            </a>
-        </div>
-        <i class='bx bx-game header-decoration'></i>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1" style="color: #008f85;">
+            <i class='bx bx-joystick me-2'></i>Event Challenges
+        </h4>
+        <span class="text-muted">Event: {{ $event->name }}</span>
     </div>
 
-    {{-- 2. MODERN TABLE --}}
-    <div class="card table-card">
-        <div class="table-responsive text-nowrap">
-            <table class="table table-hover mb-0">
-                <thead class="table-header-row">
-                    <tr>
-                        <th class="ps-4">Nama Challenge</th>
-                        <th>Reward (Price)</th>
-                        <th>Deskripsi</th>
-                        <th>Lampiran</th>
-                        <th class="text-center">Hapus</th>
-                    </tr>
-                </thead>
-                <tbody class="table-border-bottom-0 bg-white">
-                    @forelse($challenges as $challenge)
+    {{-- Action Buttons --}}
+    <div class="d-flex gap-2">
+        <a href="{{ route('admin.events.show', $event->id) }}" class="btn btn-outline-secondary">
+            <i class="bx bx-arrow-back me-1"></i> Kembali
+        </a>
+        <a href="{{ route('admin.events.challenges.create', $event->id) }}" class="btn btn-primary" style="background-color: var(--squid-primary); border:none;">
+            <i class="bx bx-plus me-1"></i> Tambah Challenge
+        </a>
+    </div>
+</div>
+
+<div class="card table-card">
+    <div class="table-responsive text-nowrap">
+        <table class="table table-hover mb-0">
+            <thead class="table-header-row">
+                <tr>
+                    <th class="ps-4">Nama Challenge</th>
+                    <th>Reward (Price)</th>
+                    <th>Deskripsi</th>
+                    <th>Lampiran</th>
+                    <th class="text-center">Aksi</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white">
+                @forelse($challenges as $challenge)
                     <tr class="challenge-row">
+                        {{-- 1. Nama --}}
                         <td class="ps-4">
-                            <div class="d-flex align-items-center py-2">
-                                <div class="avatar avatar-sm bg-label-info me-3 rounded p-1">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar avatar-sm bg-label-primary me-3 rounded p-1 d-flex align-items-center justify-content-center">
                                     <i class='bx bx-trophy fs-4'></i>
                                 </div>
                                 <div class="d-flex flex-column">
@@ -129,55 +152,70 @@
                                 </div>
                             </div>
                         </td>
+
+                        {{-- 2. Reward --}}
                         <td>
-                            {{-- Logic Warna Badge Harga --}}
                             @php
-                                $priceColor = '#00a79d'; // Default Teal
-                                if($challenge->price >= 700000) $priceColor = '#ff3e1d'; // Red for Hard
-                                elseif($challenge->price >= 500000) $priceColor = '#ffab00'; // Yellow for Medium
+                                $priceClass = 'price-normal'; // Default Hijau
+                                if ($challenge->price >= 700000) {
+                                    $priceClass = 'price-hard'; // Merah
+                                } elseif ($challenge->price >= 500000) {
+                                    $priceClass = 'price-medium'; // Kuning
+                                }
                             @endphp
-                            <span class="price-tag" style="color: {{ $priceColor }}; border-color: {{ $priceColor }}33; background: {{ $priceColor }}1a;">
+                            <span class="price-badge {{ $priceClass }}">
                                 SQ$ {{ number_format($challenge->price, 0, ',', '.') }}
                             </span>
                         </td>
+
+                        {{-- 3. Deskripsi --}}
                         <td>
                             <span class="d-inline-block text-truncate text-muted" style="max-width: 250px;" title="{{ $challenge->deskripsi }}">
                                 {{ Str::limit($challenge->deskripsi ?? '-', 50) }}
                             </span>
                         </td>
+
+                        {{-- 4. Lampiran --}}
                         <td>
                             @if($challenge->file_pdf)
-                                <a href="{{ asset('storage/'.$challenge->file_pdf) }}" target="_blank" class="btn btn-xs btn-outline-secondary rounded-pill">
-                                    <i class="bx bxs-file-pdf me-1"></i> PDF
+                                <a href="{{ asset('storage/'.$challenge->file_pdf) }}" target="_blank" class="btn-file-pdf">
+                                    <i class="bx bxs-file-pdf"></i> PDF
                                 </a>
                             @else
-                                <span class="text-muted small">-</span>
+                                <span class="text-muted small fst-italic">-</span>
                             @endif
                         </td>
+
+                        {{-- 5. Aksi --}}
                         <td class="text-center">
                             <form action="{{ route('admin.events.challenges.destroy', [$event->id, $challenge->id]) }}" method="POST" onsubmit="return confirm('Hapus challenge ini dari event?');">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="action-btn" data-bs-toggle="tooltip" title="Lepas dari Event">
-                                    <i class="bx bx-trash"></i>
+                                <button type="submit" class="btn-icon-soft" data-bs-toggle="tooltip" title="Hapus">
+                                    <i class="bx bx-trash fs-5"></i>
                                 </button>
                             </form>
                         </td>
                     </tr>
-                    @empty
+                @empty
                     <tr>
                         <td colspan="5" class="text-center py-5">
-                            <img src="{{ asset('assets/img/illustrations/girl-doing-yoga-light.png') }}" width="150" class="mb-3 grayscale opacity-50">
-                            <h6 class="text-muted">Belum ada challenge di event ini.</h6>
-                            <a href="{{ route('admin.events.challenges.create', $event->id) }}" class="btn btn-sm btn-primary mt-2">
-                                Pilih dari Master Data
+                            <div class="mb-3">
+                                <div class="avatar avatar-xl bg-label-secondary rounded-circle mx-auto p-3">
+                                    <i class='bx bx-ghost fs-1'></i>
+                                </div>
+                            </div>
+                            <h6 class="text-muted mb-1">Belum ada challenge di event ini.</h6>
+                            <p class="small text-muted mb-3">Tambahkan misi agar peserta bisa bermain.</p>
+                            <a href="{{ route('admin.events.challenges.create', $event->id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="bx bx-plus me-1"></i> Tambah Data
                             </a>
                         </td>
                     </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+                @endforelse
+            </tbody>
+        </table>
     </div>
 </div>
+
 @endsection

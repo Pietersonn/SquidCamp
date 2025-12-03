@@ -79,6 +79,7 @@ class CaseController extends Controller
     }
 
     // LOGIC BELI MENGGUNAKAN CASH (SQUID_DOLLAR)
+    // Pembelian item kecil biasanya pakai Cash/Dompet
     public function buyGuideline(Request $request)
     {
         $request->validate([
@@ -104,7 +105,6 @@ class CaseController extends Controller
         }
 
         // 2. CEK SALDO CASH (SQUID DOLLAR)
-        // KITA UBAH KE SQUID_DOLLAR AGAR SESUAI DATABASE
         if ($group->squid_dollar < $price) {
             return back()->with('error', 'Saldo Cash tidak mencukupi! ($'.number_format($price).')');
         }
@@ -220,9 +220,10 @@ class CaseController extends Controller
                 'updated_at' => now(),
             ]);
 
-            // Reward masuk ke Cash/Squid Dollar
-            $group->increment('squid_dollar', $reward);
+            // [PERBAIKAN] REWARD MASUK KE BANK (TABUNGAN)
+            $group->increment('bank_balance', $reward);
 
+            // CATAT TRANSAKSI (MASUK HISTORY)
             Transaction::create([
                 'event_id' => $event->id,
                 'from_type' => 'system',
@@ -231,10 +232,10 @@ class CaseController extends Controller
                 'to_id' => $group->id,
                 'amount' => $reward,
                 'reason' => 'CASE_REWARD',
-                'description' => 'Reward Case #' . $caseId . ' (Rank ' . $rank . ')',
+                'description' => 'Reward Case #' . $caseId . ' (Rank ' . $rank . ')'
             ]);
         });
 
-        return back()->with('success', 'Misi selesai! Jawaban berhasil dikirim.');
+        return back()->with('success', 'Misi selesai! Jawaban berhasil dikirim dan reward masuk ke Bank.');
     }
 }

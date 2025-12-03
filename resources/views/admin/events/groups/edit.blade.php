@@ -106,12 +106,21 @@
                         </div>
                     </div>
 
-                    {{-- Squid Dollar --}}
+                    {{-- Squid Dollar (Cash) --}}
                     <div class="mb-3">
-                        <label class="form-label fw-bold text-success">Squid Dollar ($)</label>
+                        <label class="form-label fw-bold text-success">Squid Dollar (Cash)</label>
                         <div class="input-group input-group-merge">
-                            <span class="input-group-text text-success">$</span>
+                            <span class="input-group-text text-success"><i class='bx bx-wallet'></i></span>
                             <input type="number" class="form-control text-success fw-bold" name="squid_dollar" value="{{ old('squid_dollar', $group->squid_dollar) }}" min="0" required />
+                        </div>
+                    </div>
+
+                    {{-- Bank Balance (Tabungan) - [BARU] --}}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-warning">Bank Balance (Tabungan)</label>
+                        <div class="input-group input-group-merge">
+                            <span class="input-group-text text-warning"><i class='bx bxs-bank'></i></span>
+                            <input type="number" class="form-control text-warning fw-bold" name="bank_balance" value="{{ old('bank_balance', $group->bank_balance) }}" min="0" required />
                         </div>
                     </div>
 
@@ -170,7 +179,7 @@
 
                 <div class="card-body pt-3">
 
-                    {{-- Search Box (FIXED Style) --}}
+                    {{-- Search Box --}}
                     <div class="mb-3 position-relative">
                         <i class="bx bx-search fs-4 lh-0 position-absolute top-50 translate-middle-y ms-3 text-muted" style="z-index: 10;"></i>
                         <input type="text"

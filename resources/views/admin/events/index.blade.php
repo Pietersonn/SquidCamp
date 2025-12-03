@@ -147,15 +147,15 @@
 
 @section('content')
 
-<div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
+{{-- HEADER STYLE BARU --}}
+<div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="fw-bold mb-1" style="color: var(--squid-primary);">
-            <i class="bx bx-calendar-event fs-3 me-2"></i>Event Management
+        <h4 class="fw-bold mb-1" style="color: #008f85;">
+            <i class="bx bx-calendar-event me-2"></i>Event Management
         </h4>
         <span class="text-muted">Kelola semua event, timeline, dan konfigurasi.</span>
     </div>
-
-    <a href="{{ route('admin.events.create') }}" class="btn btn-lg shadow-sm text-white" style="background-color: var(--squid-primary);">
+    <a href="{{ route('admin.events.create') }}" class="btn btn-primary" style="background-color: #00a79d; border:none;">
         <i class="bx bx-plus me-1"></i> Buat Event Baru
     </a>
 </div>

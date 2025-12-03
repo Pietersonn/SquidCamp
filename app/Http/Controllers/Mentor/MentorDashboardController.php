@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\ChallengeSubmission;
 use App\Models\Group;
-use App\Models\Transaction; // Pastikan Model Transaction di-use
+use App\Models\Transaction;
 
 class MentorDashboardController extends Controller
 {
@@ -70,7 +70,7 @@ class MentorDashboardController extends Controller
         return view('mentor.history', compact('histories'));
     }
 
-    // --- PERBAIKAN LOGIC APPROVE AGAR MASUK HISTORY ---
+    // --- LOGIC APPROVE ---
     public function approve($id)
     {
         $submission = ChallengeSubmission::with(['group', 'challenge'])->findOrFail($id);
@@ -84,24 +84,25 @@ class MentorDashboardController extends Controller
                 'approved_at' => now()
             ]);
 
-            // Logic Saldo (Reward masuk ke Cash/Dompet)
             $reward = $submission->challenge->price;
-            $submission->group->increment('squid_dollar', $reward);
 
-            // [FIX] CATAT KE TRANSAKSI AGAR MUNCUL DI HISTORY
+            // [PERBAIKAN] REWARD MASUK KE BANK (TABUNGAN)
+            $submission->group->increment('bank_balance', $reward);
+
+            // CATAT TRANSAKSI (MASUK HISTORY)
             Transaction::create([
                 'event_id' => $submission->event_id,
-                'from_type' => 'system', // Dari sistem
+                'from_type' => 'system',
                 'from_id' => 0,
                 'to_type' => 'group',
-                'to_id' => $submission->group_id, // Ke Kelompok
+                'to_id' => $submission->group_id,
                 'amount' => $reward,
                 'reason' => 'CHALLENGE_REWARD',
                 'description' => 'Reward Misi: ' . $submission->challenge->nama
             ]);
         });
 
-        return back()->with('success', 'Approved! Saldo & History bertambah.');
+        return back()->with('success', 'Approved! Saldo Bank bertambah & tercatat di history.');
     }
 
     public function reject(Request $request, $id)
