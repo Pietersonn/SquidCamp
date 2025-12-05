@@ -75,6 +75,11 @@
       font-weight: 600;
     }
 
+    /* Text Color Helper */
+    .text-squid {
+        color: #00a79d !important;
+    }
+
     /* Tombol Action Float */
     .btn-action-float {
       width: 50px; height: 50px;
@@ -91,10 +96,12 @@
       color: #00a79d; border-color: #f0fdfa;
       box-shadow: 0 5px 15px rgba(0, 167, 157, 0.1);
     }
+
+    /* UPDATED: btn-bank jadi Hijau juga (was Blue) */
     .btn-bank {
-      background: linear-gradient(135deg, #e7f1ff 0%, #ffffff 100%);
-      color: #007bff; border-color: #f0f8ff;
-      box-shadow: 0 5px 15px rgba(0, 123, 255, 0.1);
+      background: linear-gradient(135deg, #e0f2f1 0%, #ffffff 100%);
+      color: #00a79d; border-color: #f0fdfa;
+      box-shadow: 0 5px 15px rgba(0, 167, 157, 0.1);
     }
 
     /* --- PHASE MENU GRID --- */
@@ -120,6 +127,13 @@
       border: 1px solid #f4f4f4;
     }
     .phase-card:active { transform: scale(0.98); }
+
+    /* Disabled State for Locked Phase */
+    .phase-card.disabled {
+        opacity: 0.6;
+        filter: grayscale(0.8);
+        cursor: default;
+    }
 
     .phase-icon {
       font-size: 1.8rem;
@@ -148,7 +162,7 @@
     .status-running { background: #e8fadf; color: #71dd37; animation: pulse 2s infinite; }
     .status-upcoming { background: #fff2d6; color: #ffab00; }
     .status-ended { background: #f2f2f2; color: #b4bdce; }
-    .status-locked { background: #f2f2f2; color: #b4bdce; filter: grayscale(1); opacity: 0.7; }
+    .status-locked { background: #f2f2f2; color: #b4bdce; }
 
     @keyframes pulse {
         0% { box-shadow: 0 0 0 0 rgba(113, 221, 55, 0.4); }
@@ -237,7 +251,7 @@
     .receipt-paper {
         background: #fff; padding: 20px; border-radius: 10px; position: relative;
         font-family: 'Courier New', Courier, monospace;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.1); border-top: 5px solid #007bff;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1); border-top: 5px solid #00a79d; /* Changed to Green */
     }
     .receipt-paper::after {
         content: ""; position: absolute; bottom: -5px; left: 0; width: 100%; height: 10px;
@@ -306,9 +320,9 @@
         SQUID BANK (TABUNGAN)
       </span>
 
-      {{-- [PERBAIKAN] SQUID BANK ADALAH bank_balance --}}
-      <h2 class="mb-0 balance-amount text-primary">
-        <span class="currency-symbol text-primary">$</span>{{ number_format($group->bank_balance ?? 0, 0, ',', '.') }}
+      {{-- [PERBAIKAN] WARNA JADI HIJAU/TEAL (text-squid) --}}
+      <h2 class="mb-0 balance-amount text-squid">
+        <span class="currency-symbol">$</span>{{ number_format($group->bank_balance ?? 0, 0, ',', '.') }}
       </h2>
 
       {{-- [PERBAIKAN] CASH ADALAH squid_dollar --}}
@@ -337,6 +351,7 @@
           [
               'name' => 'Challenge',
               'icon' => 'bx-joystick',
+              'color' => '#71dd37', // Hijau
               'start' => $event->challenge_start_time ?? null,
               'end' => $event->challenge_end_time ?? null,
               'route' => route('main.challenges.index')
@@ -344,6 +359,7 @@
           [
               'name' => 'Case',
               'icon' => 'bx-briefcase-alt-2',
+              'color' => '#ffab00', // Kuning
               'start' => $event->case_start_time ?? null,
               'end' => $event->case_end_time ?? null,
               'route' => route('main.cases.index')
@@ -351,6 +367,7 @@
           [
               'name' => 'Show',
               'icon' => 'bx-tv',
+              'color' => '#ff3e1d', // Merah
               'start' => $event->show_start_time ?? null,
               'end' => $event->show_end_time ?? null,
               'route' => '#'
@@ -382,7 +399,9 @@
           @endphp
 
           <a href="{{ $phase['route'] }}" class="phase-card {{ $status == 'locked' ? 'disabled' : '' }}">
-              <i class='bx {{ $phase['icon'] }} phase-icon text-{{ $status == 'running' ? 'primary' : 'secondary' }}'></i>
+              {{-- ICON COLORFUL (Hijau, Kuning, Merah) --}}
+              <i class='bx {{ $phase['icon'] }} phase-icon' style="color: {{ $phase['color'] }}"></i>
+
               <span class="phase-name">{{ $phase['name'] }}</span>
               <span class="phase-status status-{{ $status }}">{{ $statusLabel }}</span>
           </a>
@@ -492,7 +511,8 @@
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content border-0 shadow-lg" style="border-radius: 25px;">
         <div class="modal-header border-0 pb-0">
-          <h5 class="modal-title fw-bold text-primary"><i class='bx bx-money-withdraw me-1'></i> Tarik Uang dari Bank</h5>
+          {{-- [PERBAIKAN] Warna judul modal jadi hijau text-squid --}}
+          <h5 class="modal-title fw-bold text-squid"><i class='bx bx-money-withdraw me-1'></i> Tarik Uang dari Bank</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body pt-3">
@@ -508,19 +528,20 @@
             <div class="mb-4">
               <label class="form-label small fw-bold text-muted">Jumlah Penarikan (SQ$)</label>
               <div class="input-group input-group-lg bg-light rounded-3">
-                <span class="input-group-text border-0 bg-transparent text-primary fw-bold">$</span>
+                <span class="input-group-text border-0 bg-transparent text-squid fw-bold">$</span>
                 {{-- MAX: BANK BALANCE --}}
                 <input type="number" name="amount" class="form-control border-0 bg-transparent fw-bold text-dark"
                        placeholder="0" min="1" max="{{ $group->bank_balance ?? 0 }}" required>
               </div>
               <div class="d-flex justify-content-between mt-1">
-                 <small class="text-muted" style="font-size: 0.7rem;">Sumber: Squid Bank</small>
-                 {{-- SUMBER: BANK BALANCE --}}
-                 <small class="fw-bold text-dark" style="font-size: 0.7rem;">Tersedia: ${{ number_format($group->bank_balance ?? 0) }}</small>
+                  <small class="text-muted" style="font-size: 0.7rem;">Sumber: Squid Bank</small>
+                  {{-- SUMBER: BANK BALANCE --}}
+                  <small class="fw-bold text-dark" style="font-size: 0.7rem;">Tersedia: ${{ number_format($group->bank_balance ?? 0) }}</small>
               </div>
             </div>
 
-            <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold shadow-sm" style="background-color: #007bff; border:none;">
+            {{-- [PERBAIKAN] Tombol jadi warna Hijau --}}
+            <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold shadow-sm" style="background-color: #00a79d; border:none;">
               Tarik ke Dompet <i class='bx bx-download ms-1'></i>
             </button>
           </form>
@@ -537,7 +558,8 @@
                 @php $receipt = session('withdrawal_receipt'); @endphp
                 <div class="receipt-paper">
                     <div class="receipt-title">
-                        <i class='bx bxs-bank fs-1 d-block mb-2 text-primary'></i>
+                        {{-- Icon Struk Hijau --}}
+                        <i class='bx bxs-bank fs-1 d-block mb-2 text-squid'></i>
                         SQUID BANK<br>RECEIPT
                     </div>
                     <div class="receipt-row">

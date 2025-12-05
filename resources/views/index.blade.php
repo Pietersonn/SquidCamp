@@ -130,7 +130,6 @@
                          style="object-fit: cover;" alt="Avatar">
                 </div>
                 <h5 class="fw-bold text-dark mb-0">Hai, {{ Auth::user()->name }}!</h5>
-                <small class="text-primary-squid fw-semibold">{{ ucfirst(Auth::user()->role) }}</small>
             </div>
 
             <p class="text-muted small mb-3">Siap untuk tantangan hari ini?</p>

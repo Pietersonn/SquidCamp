@@ -39,13 +39,22 @@ class EventGuidelineController extends Controller
     {
         $request->validate([
             'guideline_ids' => 'required|array',
-            'guideline_ids.*' => 'exists:guidelines,id'
+            'guideline_ids.*' => 'exists:guidelines,id',
+            'stock' => 'array', // Validasi input stock
         ], [
             'guideline_ids.required' => 'Pilih setidaknya satu guideline.'
         ]);
 
+        // Siapkan data untuk sync (termasuk stock)
+        $syncData = [];
+        foreach ($request->guideline_ids as $id) {
+            // Ambil stock dari input, default 5 jika tidak diisi
+            $stockVal = $request->input("stock.$id", 5);
+            $syncData[$id] = ['stock' => $stockVal];
+        }
+
         // Simpan banyak sekaligus tanpa menghapus yang lama
-        $event->guidelines()->syncWithoutDetaching($request->guideline_ids);
+        $event->guidelines()->syncWithoutDetaching($syncData);
 
         $count = count($request->guideline_ids);
 
@@ -79,6 +88,7 @@ class EventGuidelineController extends Controller
         $event->guidelines()->detach($guideline->id);
 
         // Tambah yang baru (jika belum ada)
+        // Note: Logic update stock perlu ditambahkan di view edit jika ingin diubah juga
         $event->guidelines()->syncWithoutDetaching([$request->guideline_id]);
 
         return redirect()->route('admin.events.guidelines.index', $event->id)

@@ -15,6 +15,7 @@ return new class extends Migration
       $table->id();
       $table->foreignId('event_id')->constrained('events')->onDelete('cascade');
       $table->foreignId('guideline_id')->constrained('guidelines')->onDelete('cascade');
+      $table->integer('stock')->default(5);
       $table->timestamps();
     });
   }
@@ -25,6 +26,6 @@ return new class extends Migration
    */
   public function down(): void
   {
-    Schema::dropIfExists('guidelines'); // Sesuaikan
+    Schema::dropIfExists('guidelines'); 
   }
 };

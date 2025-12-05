@@ -140,8 +140,17 @@
         padding: 25px;
         text-align: center;
         position: relative;
+        transition: all 0.2s;
     }
-    .upload-input { position: absolute; top:0; left:0; width:100%; height:100%; opacity:0; }
+    .upload-box.has-file {
+        background: #e8fadf;
+        border-color: #71dd37;
+    }
+    .upload-input { position: absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor: pointer; }
+
+    /* Text Color Helper */
+    .text-squid { color: #00a79d !important; }
+    .bg-squid { background-color: #00a79d !important; }
 
 </style>
 @endsection
@@ -175,7 +184,7 @@
         {{-- 3. PILIHAN CHALLENGE --}}
         <div class="d-flex justify-content-between align-items-center px-4 mb-3">
             <h6 class="fw-bold text-dark m-0 ps-2 border-start border-4 border-primary">Ambil Misi Baru</h6>
-            <span class="badge bg-label-primary rounded-pill">{{ $canTakeMore ? 'Slot Tersedia' : 'Slot Penuh' }}</span>
+            <span class="badge bg-label-success rounded-pill">{{ $canTakeMore ? 'Slot Tersedia' : 'Slot Penuh' }}</span>
         </div>
 
         <div class="difficulty-grid">
@@ -227,11 +236,8 @@
                     $borderColor = '#ff3e1d';
                     $statusText = 'REVISI';
                     $statusClass = 'bg-label-danger';
-                } elseif($submission->status == 'approved') {
-                    $borderColor = '#71dd37';
-                    $statusText = 'SELESAI';
-                    $statusClass = 'bg-label-success';
                 }
+                // Approved tidak masuk sini lagi karena dipisah
             @endphp
 
             <div class="active-challenge-card" style="border-left-color: {{ $borderColor }};">
@@ -254,7 +260,9 @@
                     @endif
 
                     @if($submission->status == 'active')
-                        <button class="btn btn-sm btn-primary rounded-pill px-3 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#submitModal{{ $submission->id }}">
+                        <button class="btn btn-sm btn-primary rounded-pill px-3 fw-bold shadow-sm"
+                                style="background-color: #00a79d; border:none;"
+                                data-bs-toggle="modal" data-bs-target="#submitModal{{ $submission->id }}">
                             <i class='bx bx-upload me-1'></i> SUBMIT JAWABAN
                         </button>
                     @elseif($submission->status == 'rejected')
@@ -292,13 +300,13 @@
 
                                 <div class="mb-3">
                                     <label class="form-label small fw-bold text-muted">Upload File</label>
-                                    <div class="upload-box">
-                                        <i class='bx bxs-cloud-upload fs-1 text-primary mb-2'></i>
-                                        <h6 class="fw-bold text-dark mb-0">Tap untuk Upload</h6>
-                                        {{-- UPDATE LABEL --}}
-                                        <small class="text-muted">PDF, DOC, ZIP, JPG, PNG</small>
-                                        {{-- UPDATE ACCEPT ATTRIBUTE --}}
-                                        <input type="file" name="file" class="upload-input" accept=".pdf,.doc,.docx,.zip,.jpg,.jpeg,.png">
+                                    <div class="upload-box" id="uploadBox{{ $submission->id }}">
+                                        <i class='bx bxs-cloud-upload fs-1 text-squid mb-2' id="uploadIcon{{ $submission->id }}"></i>
+                                        <h6 class="fw-bold text-dark mb-0" id="uploadText{{ $submission->id }}">Tap untuk Upload</h6>
+                                        <small class="text-muted" id="uploadDesc{{ $submission->id }}">PDF, DOC, ZIP, JPG, PNG</small>
+                                        <input type="file" name="file" class="upload-input"
+                                               accept=".pdf,.doc,.docx,.zip,.jpg,.jpeg,.png"
+                                               onchange="previewFile(this, {{ $submission->id }})">
                                     </div>
                                 </div>
 
@@ -314,7 +322,7 @@
                                 </div>
 
                                 <div class="d-grid">
-                                    <button type="submit" class="btn btn-primary rounded-pill py-2 fw-bold shadow">
+                                    <button type="submit" class="btn btn-primary rounded-pill py-2 fw-bold shadow" style="background-color: #00a79d; border:none;">
                                         <span class="btn-text">KIRIM SEKARANG</span>
                                         <span class="btn-loader d-none"><i class='bx bx-loader-alt bx-spin'></i> SENDING...</span>
                                     </button>
@@ -335,6 +343,29 @@
             </div>
         @endforelse
 
+        {{-- 5. COMPLETED CHALLENGES SECTION (NEW) --}}
+        @if($completedChallenges->count() > 0)
+            <div class="px-4 mb-3 mt-4 d-flex justify-content-between align-items-end">
+                <h6 class="fw-bold text-dark m-0 ps-2 border-start border-4 border-success">Misi Selesai</h6>
+                <small class="text-muted fw-bold">{{ $completedChallenges->count() }} Selesai</small>
+            </div>
+
+            @foreach($completedChallenges as $done)
+                <div class="active-challenge-card" style="border-left-color: #71dd37; background: #f0fdf4;">
+                    <span class="status-badge bg-label-success">SELESAI</span>
+
+                    <div class="mb-2">
+                        <span class="price-tag me-2"><i class='bx bx-coin-stack'></i> ${{ number_format($done->challenge->price/1000, 0) }}K</span>
+                    </div>
+
+                    <h5 class="fw-bold text-dark mb-2 w-75 text-decoration-line-through opacity-75">{{ $done->challenge->nama }}</h5>
+                    <p class="text-muted small mb-0">
+                        <i class='bx bx-check-circle text-success me-1'></i> Challenge berhasil diselesaikan.
+                    </p>
+                </div>
+            @endforeach
+        @endif
+
     @endif
 
     <div style="height: 80px;"></div>
@@ -343,6 +374,27 @@
 
 @push('scripts')
 <script>
+    function previewFile(input, id) {
+        if (input.files && input.files[0]) {
+            var fileName = input.files[0].name;
+            var box = document.getElementById('uploadBox' + id);
+            var text = document.getElementById('uploadText' + id);
+            var desc = document.getElementById('uploadDesc' + id);
+            var icon = document.getElementById('uploadIcon' + id);
+
+            // Update Text
+            text.textContent = fileName;
+            desc.textContent = "Siap untuk dikirim";
+
+            // Update Icon
+            icon.classList.remove('bx-cloud-upload', 'text-squid');
+            icon.classList.add('bx-check-circle', 'text-success');
+
+            // Add active class
+            box.classList.add('has-file');
+        }
+    }
+
     @php
         $isoEndTime = $event && $event->challenge_end_time ? $event->challenge_end_time->toIso8601String() : null;
     @endphp

@@ -39,10 +39,18 @@ class ChallengeController extends Controller
             }
         }
 
-        // 3. Ambil Challenge Group saat ini
+        // 3. Ambil Challenge Group saat ini (ON PROGRESS)
         $myActiveChallenges = ChallengeSubmission::where('group_id', $group->id)
                                 ->whereIn('status', ['active', 'pending', 'rejected'])
                                 ->with('challenge')
+                                ->orderBy('updated_at', 'desc')
+                                ->get();
+
+        // 4. [NEW] Ambil Challenge yang SUDAH SELESAI (APPROVED)
+        $completedChallenges = ChallengeSubmission::where('group_id', $group->id)
+                                ->where('status', 'approved')
+                                ->with('challenge')
+                                ->orderBy('updated_at', 'desc')
                                 ->get();
 
         $slotUsed = $myActiveChallenges->whereIn('status', ['active', 'pending'])->count();
@@ -52,7 +60,7 @@ class ChallengeController extends Controller
         $isCaptain = ($group->captain_id == $user->id || $group->cocaptain_id == $user->id);
 
         return view('main.challenges.index', compact(
-            'event', 'isOpened', 'myActiveChallenges', 'canTakeMore', 'isCaptain', 'group'
+            'event', 'isOpened', 'myActiveChallenges', 'completedChallenges', 'canTakeMore', 'isCaptain', 'group'
         ));
     }
 

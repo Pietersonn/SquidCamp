@@ -64,11 +64,22 @@ class CaseController extends Controller
 
         $allGuidelines->each(function($gl) use ($ownedGuidelineIds, $event) {
             $gl->is_owned = in_array($gl->id, $ownedGuidelineIds);
+
+            // [UPDATED] Hitung Stock Dinamis
+            // Ambil total stock dari setting event
+            $eventGuideline = DB::table('event_guidelines')
+                ->where('event_id', $event->id)
+                ->where('guideline_id', $gl->id)
+                ->first();
+            $maxStock = $eventGuideline ? $eventGuideline->stock : 0;
+
+            // Hitung yang sudah terjual
             $soldCount = DB::table('group_guidelines')
                 ->where('event_id', $event->id)
                 ->where('guideline_id', $gl->id)
                 ->count();
-            $gl->stock = max(0, 5 - $soldCount);
+
+            $gl->stock = max(0, $maxStock - $soldCount);
         });
 
         $myGuidelines = $allGuidelines->where('is_owned', true);
@@ -78,8 +89,7 @@ class CaseController extends Controller
         ));
     }
 
-    // LOGIC BELI MENGGUNAKAN CASH (SQUID_DOLLAR)
-    // Pembelian item kecil biasanya pakai Cash/Dompet
+    // LOGIC BELI MENGGUNAKAN BANK BALANCE (SQUID BANK)
     public function buyGuideline(Request $request)
     {
         $request->validate([
@@ -94,22 +104,30 @@ class CaseController extends Controller
         $guideline = Guideline::find($request->guideline_id);
         $price = $guideline->price;
 
-        // 1. CEK STOK
+        // 1. AMBIL STOCK MAX DARI EVENT
+        $eventGuideline = DB::table('event_guidelines')
+            ->where('event_id', $event->id)
+            ->where('guideline_id', $guideline->id)
+            ->first();
+
+        $maxStock = $eventGuideline ? $eventGuideline->stock : 0;
+
+        // 2. CEK STOK
         $soldCount = DB::table('group_guidelines')
             ->where('event_id', $event->id)
             ->where('guideline_id', $guideline->id)
             ->count();
 
-        if ($soldCount >= 5) {
+        if ($soldCount >= $maxStock) {
             return back()->with('error', 'Gagal! Dokumen ini sudah habis terjual (Sold Out).');
         }
 
-        // 2. CEK SALDO CASH (SQUID DOLLAR)
-        if ($group->squid_dollar < $price) {
-            return back()->with('error', 'Saldo Cash tidak mencukupi! ($'.number_format($price).')');
+        // 3. CEK SALDO BANK (BANK BALANCE) - [UPDATED]
+        if ($group->bank_balance < $price) {
+            return back()->with('error', 'Saldo Bank tidak mencukupi! ($'.number_format($price).')');
         }
 
-        // 3. Cek Kepemilikan
+        // 4. Cek Kepemilikan
         $alreadyOwn = DB::table('group_guidelines')
             ->where('group_id', $group->id)
             ->where('guideline_id', $guideline->id)
@@ -119,20 +137,21 @@ class CaseController extends Controller
             return back()->with('error', 'Tim kamu sudah memiliki dokumen ini!');
         }
 
-        // 4. Proses Transaksi
-        DB::transaction(function () use ($group, $event, $guideline, $price) {
+        // 5. Proses Transaksi
+        DB::transaction(function () use ($group, $event, $guideline, $price, $maxStock) {
+            // Re-check stock with lock
             $currentSold = DB::table('group_guidelines')
                 ->where('event_id', $event->id)
                 ->where('guideline_id', $guideline->id)
                 ->lockForUpdate()
                 ->count();
 
-            if ($currentSold >= 5) {
+            if ($currentSold >= $maxStock) {
                 throw new \Exception('Stok habis saat proses transaksi.');
             }
 
-            // KURANGI SALDO CASH (SQUID DOLLAR)
-            $group->decrement('squid_dollar', $price);
+            // KURANGI SALDO BANK - [UPDATED]
+            $group->decrement('bank_balance', $price);
 
             DB::table('group_guidelines')->insert([
                 'event_id' => $event->id,
@@ -151,7 +170,7 @@ class CaseController extends Controller
                 'to_id' => 0,
                 'amount' => $price,
                 'reason' => 'BUY_GUIDELINE',
-                'description' => 'Membeli Dokumen Rahasia ('.$guideline->title.')'
+                'description' => 'Membeli Dokumen Rahasia ('.$guideline->title.') via Bank'
             ]);
         });
 
@@ -220,7 +239,7 @@ class CaseController extends Controller
                 'updated_at' => now(),
             ]);
 
-            // [PERBAIKAN] REWARD MASUK KE BANK (TABUNGAN)
+            // REWARD MASUK KE BANK (TABUNGAN)
             $group->increment('bank_balance', $reward);
 
             // CATAT TRANSAKSI (MASUK HISTORY)

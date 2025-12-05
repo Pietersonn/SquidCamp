@@ -189,6 +189,19 @@
                                     {{ Str::limit($g->description, 70) ?? 'Tidak ada deskripsi.' }}
                                 </p>
 
+                                {{-- STOCK INPUT SECTION --}}
+                                <div class="mb-3" onclick="event.stopPropagation()">
+                                    <label class="form-label small fw-bold text-muted mb-1">Set Stok Awal:</label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-light border-0"><i class='bx bx-layer'></i></span>
+                                        <input type="number"
+                                               name="stock[{{ $g->id }}]"
+                                               class="form-control bg-light border-0"
+                                               value="5" min="1"
+                                               placeholder="Stok">
+                                    </div>
+                                </div>
+
                                 <div class="d-flex justify-content-between align-items-center mt-auto pt-2 border-top border-light">
                                     <small class="text-muted" style="font-size: 0.7rem;">
                                         {{ $g->created_at->format('d M Y') }}

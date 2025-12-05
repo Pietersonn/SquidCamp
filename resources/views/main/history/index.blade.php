@@ -4,49 +4,98 @@
 
 @section('styles')
 <style>
+    /* --- HEADER SECTION --- */
     .history-header {
         background: linear-gradient(135deg, #00a79d 0%, #00d4c7 100%);
-        padding: 30px 20px 40px 20px;
-        border-bottom-left-radius: 30px;
-        border-bottom-right-radius: 30px;
+        padding: 30px 25px 50px 25px;
+        border-bottom-left-radius: 35px;
+        border-bottom-right-radius: 35px;
         color: white;
-        margin-bottom: 20px;
-        box-shadow: 0 4px 15px rgba(0, 167, 157, 0.2);
+        margin-bottom: 25px;
+        box-shadow: 0 10px 25px rgba(0, 167, 157, 0.2);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
 
+    /* Decorative Background Elements */
+    .history-header::before {
+        content: '';
+        position: absolute;
+        top: -30px; right: -30px;
+        width: 120px; height: 120px;
+        background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+        border-radius: 50%;
+        z-index: 1;
+    }
+    .header-deco-icon {
+        position: absolute;
+        bottom: -10px; right: 20px;
+        font-size: 6rem;
+        color: rgba(255, 255, 255, 0.1);
+        transform: rotate(-20deg);
+        z-index: 1;
+        pointer-events: none;
+    }
+
+    .header-content {
+        position: relative;
+        z-index: 2;
+    }
+
+    /* Back Button Glass Effect */
+    .btn-back-glass {
+        width: 42px; height: 42px;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 14px;
+        display: flex; align-items: center; justify-content: center;
+        color: white;
+        font-size: 1.2rem;
+        text-decoration: none;
+        transition: 0.2s;
+        z-index: 2;
+    }
+    .btn-back-glass:active { transform: scale(0.95); background: rgba(255, 255, 255, 0.3); }
+
+    /* --- TRANSACTION LIST --- */
     .trx-item {
         background: white;
-        border-radius: 16px;
+        border-radius: 18px;
         padding: 15px;
         margin-bottom: 12px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.03);
         cursor: pointer;
-        transition: transform 0.1s;
+        transition: transform 0.1s, box-shadow 0.1s;
+        border: 1px solid #f8f9fa;
     }
-    .trx-item:active { transform: scale(0.98); }
+    .trx-item:active { transform: scale(0.98); background-color: #fafafa; }
 
     .trx-icon {
-        width: 45px; height: 45px;
-        border-radius: 12px;
+        width: 48px; height: 48px;
+        border-radius: 14px;
         display: flex; align-items: center; justify-content: center;
-        font-size: 1.4rem; margin-right: 15px;
+        font-size: 1.5rem; margin-right: 15px;
         flex-shrink: 0;
     }
     .icon-in { background: #e8fadf; color: #71dd37; } /* Hijau (Masuk) */
     .icon-out { background: #ffe0db; color: #ff3e1d; } /* Merah (Keluar) */
 
     .trx-info { flex-grow: 1; overflow: hidden; }
-    .trx-title { font-weight: 700; color: #333; font-size: 0.9rem; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .trx-date { font-size: 0.7rem; color: #999; }
+    .trx-title { font-weight: 700; color: #333; font-size: 0.9rem; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .trx-date { font-size: 0.7rem; color: #999; display: flex; align-items: center; gap: 4px; }
 
-    .trx-amount { font-weight: 800; font-size: 0.95rem; white-space: nowrap; }
+    .trx-amount { font-family: 'Public Sans', sans-serif; font-weight: 800; font-size: 0.95rem; white-space: nowrap; }
     .text-in { color: #71dd37; }
     .text-out { color: #ff3e1d; }
 
-    /* --- RECEIPT STYLE (Copy dari Dashboard) --- */
+    /* --- RECEIPT STYLE --- */
     .receipt-paper {
         background: #fff; padding: 20px; border-radius: 10px; position: relative;
         font-family: 'Courier New', Courier, monospace;
@@ -60,6 +109,9 @@
     .receipt-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.85rem; color: #555; }
     .receipt-total { border-top: 2px dashed #ddd; padding-top: 10px; margin-top: 10px; font-weight: bold; font-size: 1.1rem; color: #000; }
     .receipt-footer { text-align: center; margin-top: 15px; font-size: 0.7rem; color: #999; }
+
+    /* Text Color Helper */
+    .text-squid { color: #00a79d !important; }
 </style>
 @endsection
 
@@ -67,23 +119,26 @@
 
 {{-- Header --}}
 <div class="history-header">
-    <div class="d-flex justify-content-between align-items-center">
-        <div>
-            <h4 class="fw-bold mb-1">Riwayat</h4>
-            <p class="opacity-75 small mb-0">Semua transaksi tim</p>
-        </div>
-        <a href="{{ route('main.dashboard') }}" class="btn btn-sm btn-light bg-opacity-25 text-white border-0">
-            <i class='bx bx-home'></i>
-        </a>
+    {{-- Background Decoration Icon --}}
+    <i class='bx bx-receipt header-deco-icon'></i>
+
+    <div class="header-content">
+        {{-- [PERBAIKAN] Menambahkan class text-white --}}
+        <h4 class="fw-bold mb-1 text-white">Riwayat</h4>
+        <p class="opacity-75 small mb-0 text-white">Catatan transaksi tim kamu</p>
     </div>
+
+    <a href="{{ route('main.dashboard') }}" class="btn-back-glass">
+        <i class='bx bx-arrow-back'></i>
+    </a>
 </div>
 
 {{-- List Transaksi --}}
-<div class="container px-3 pb-5" style="margin-top: -30px;">
+<div class="container px-3 pb-5" style="margin-top: -30px; position: relative; z-index: 10;">
     @forelse ($transactions as $trx)
         @php
             // Logic menentukan Masuk/Keluar
-            // Jika 'to_id' adalah grup kita => Uang MASUK (Kecuali withdraw, withdraw itu bank->grup, jadi masuk cash)
+            // Jika 'to_id' adalah grup kita => Uang MASUK
             // Jika 'from_id' adalah grup kita => Uang KELUAR
 
             $isIncoming = false;
@@ -119,18 +174,21 @@
             {{-- Info --}}
             <div class="trx-info">
                 <div class="trx-title">{{ $trx->description }}</div>
-                <div class="trx-date">{{ $trx->created_at->diffForHumans() }}</div>
+                <div class="trx-date"><i class='bx bx-time-five'></i> {{ $trx->created_at->diffForHumans() }}</div>
             </div>
 
             {{-- Amount --}}
             <div class="trx-amount {{ $isIncoming ? 'text-in' : 'text-out' }}">
-                {{ $isIncoming ? '+' : '-' }} ${{ number_format($trx->amount/1000, 0) }}K
+                {{ $isIncoming ? '+' : '-' }} ${{ number_format($trx->amount, 0, ',', '.') }}
             </div>
         </div>
     @empty
         <div class="text-center py-5 text-muted">
-            <i class='bx bx-notepad fs-1 mb-2 opacity-50'></i>
-            <p>Belum ada riwayat transaksi.</p>
+            <div style="width: 80px; height: 80px; background: #f0f2f5; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto;">
+                <i class='bx bx-notepad fs-1 opacity-25'></i>
+            </div>
+            <p class="mb-0 fw-bold">Belum ada riwayat.</p>
+            <p class="small opacity-75">Transaksi akan muncul di sini.</p>
         </div>
     @endforelse
 </div>
@@ -141,7 +199,8 @@
         <div class="modal-content bg-transparent shadow-none border-0">
             <div class="receipt-paper">
                 <div class="receipt-title">
-                    <i class='bx bxs-receipt fs-1 d-block mb-2 text-primary'></i>
+                    {{-- Changed from text-primary (blue) to text-squid (green) --}}
+                    <i class='bx bxs-receipt fs-1 d-block mb-2 text-squid'></i>
                     BUKTI TRANSAKSI
                 </div>
 
