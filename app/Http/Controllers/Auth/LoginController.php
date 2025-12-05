@@ -39,9 +39,9 @@ class LoginController extends Controller
     {
         $route = match ($user->role) {
             'admin'    => 'admin.dashboard',
-            'mentor'   => 'mentor.dashboard',
+            'mentor'   => 'mentor.select-event', // [UBAH DISINI] Arahkan ke pilih event
             'investor' => 'investor.dashboard',
-            'user'     => 'landing', // UBAH DISINI: User kembali ke landing page
+            'user'     => 'landing',
             default    => 'landing',
         };
 

@@ -69,6 +69,26 @@ class User extends Authenticatable
     }
 
     /**
+     * [PERBAIKAN] Relasi Event milik Mentor.
+     * Menghubungkan User (Mentor) ke Event melalui tabel pivot 'event_mentors'.
+     * Update: Menghapus ->withPivot('status') karena kolom status tidak ada di tabel database saat ini.
+     */
+    public function mentorEvents()
+    {
+        return $this->belongsToMany(Event::class, 'event_mentors', 'user_id', 'event_id')
+                    // ->withPivot('status') // HAPUS ATAU KOMENTARI BARIS INI
+                    ->withTimestamps();
+    }
+
+    /**
+     * Helper untuk cek apakah mentor punya akses ke event tertentu
+     */
+    public function hasEventAccess($eventId)
+    {
+        return $this->mentorEvents()->where('event_id', $eventId)->exists();
+    }
+
+    /**
      * Relasi untuk INVESTOR: Event mana saja dia ditugaskan
      */
     public function investedEvents()

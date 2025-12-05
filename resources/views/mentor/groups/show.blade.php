@@ -3,6 +3,11 @@
 
 @section('styles')
 <style>
+    /* --- COLOR PALETTE --- */
+    .bg-squid-soft { background-color: rgba(0, 167, 157, 0.1) !important; color: #00a79d !important; }
+    .text-squid { color: #00a79d !important; }
+    .border-squid { border-color: #00a79d !important; }
+
     .detail-header {
         background: white;
         padding: 20px 20px 30px 20px;
@@ -79,7 +84,14 @@
         justify-content: center;
         margin: 0 auto 8px auto;
         font-size: 1.2rem;
+        /* Ganti warna default (biasanya biru) jadi abu/hijau soft */
+        background-color: #f0f2f5;
         color: #555;
+    }
+    .custom-avatar.is-captain {
+        background-color: rgba(0, 167, 157, 0.1);
+        color: #00a79d;
+        border: 1px solid rgba(0, 167, 157, 0.2);
     }
 </style>
 @endsection
@@ -88,18 +100,20 @@
 
     {{-- HEADER INFO --}}
     <div class="detail-header text-center pt-4">
-        <a href="{{ route('mentor.groups.index') }}" class="btn btn-sm btn-light rounded-circle position-absolute start-0 top-0 mt-4 ms-3 shadow-sm" style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;">
+        {{-- FIX ROUTE: Kembali ke list group event ini --}}
+        <a href="{{ route('mentor.groups.index', $event->id) }}" class="btn btn-sm btn-light rounded-circle position-absolute start-0 top-0 mt-4 ms-3 shadow-sm" style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;">
             <i class='bx bx-chevron-left fs-4'></i>
         </a>
 
-        <div class="avatar bg-label-primary p-3 rounded-circle mx-auto mb-2" style="width: 70px; height: 70px; display: flex; align-items: center; justify-content: center;">
+        {{-- Icon Group (Green Theme) --}}
+        <div class="avatar bg-squid-soft p-3 rounded-circle mx-auto mb-2" style="width: 70px; height: 70px; display: flex; align-items: center; justify-content: center;">
             <span class="bx bxs-group fs-1"></span>
         </div>
 
         <h4 class="fw-bold text-dark mb-0">{{ $group->name }}</h4>
         <div class="balance-badge">
             <span style="opacity: 0.8; font-size: 0.7rem; font-weight: 400;">TOTAL SALDO</span> <br>
-            SQ$ {{ number_format($group->squid_dollar) }}
+            $ {{ number_format($group->squid_dollar) }}
         </div>
 
         <div class="row mt-4 pt-3 border-top mx-2">
@@ -108,6 +122,7 @@
                 <small class="text-muted fw-bold" style="font-size: 0.65rem;">MEMBER</small>
             </div>
             <div class="col-4 border-end">
+                {{-- Text Success is usually green, ok --}}
                 <h5 class="mb-0 fw-bold text-success">{{ $group->completedChallenges->count() }}</h5>
                 <small class="text-muted fw-bold" style="font-size: 0.65rem;">SELESAI</small>
             </div>
@@ -124,16 +139,17 @@
         <div class="section-title">👥 Anggota Tim</div>
         <div class="d-flex overflow-auto pb-3 ps-1" style="margin-left: -5px;">
             @foreach($group->members as $member)
+                @php $isCaptain = $member->user->id == $group->captain_id; @endphp
                 <div class="member-card">
-                    {{-- Avatar diperbaiki --}}
-                    <div class="custom-avatar bg-label-info rounded-circle fw-bold">
+                    {{-- Avatar diperbaiki (Ganti tema biru ke hijau/neutral) --}}
+                    <div class="custom-avatar rounded-circle fw-bold {{ $isCaptain ? 'is-captain' : '' }}">
                         {{ substr($member->user->name, 0, 1) }}
                     </div>
                     <small class="d-block fw-bold text-dark text-truncate" style="font-size: 0.75rem; max-width: 70px;">
                         {{ explode(' ', $member->user->name)[0] }}
                     </small>
                     <small class="text-muted d-block" style="font-size: 0.6rem;">
-                        {{ $member->user->id == $group->captain_id ? 'Captain' : 'Member' }}
+                        {{ $isCaptain ? 'Captain' : 'Member' }}
                     </small>
                 </div>
             @endforeach
@@ -153,7 +169,8 @@
                         </div>
                         <div class="text-end">
                             <small class="text-muted d-block" style="font-size: 0.6rem;">Reward</small>
-                            <span class="fw-bold text-primary">SQ$ {{ number_format($active->challenge->price) }}</span>
+                            {{-- Ganti text-primary (biru) jadi text-squid (hijau) --}}
+                            <span class="fw-bold text-squid">$ {{ number_format($active->challenge->price) }}</span>
                         </div>
                     </div>
 
@@ -171,7 +188,7 @@
                         <hr class="my-2 border-dashed">
                         <div class="bg-label-warning p-2 rounded text-center">
                             <small class="fw-bold text-dark d-block mb-1">🔥 Menunggu Review Anda!</small>
-                            <a href="{{ route('mentor.dashboard') }}" class="btn btn-xs btn-warning rounded-pill px-3">
+                            <a href="{{ route('mentor.dashboard', $event->id) }}" class="btn btn-xs btn-warning rounded-pill px-3">
                                 Ke Dashboard
                             </a>
                         </div>

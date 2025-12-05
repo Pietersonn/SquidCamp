@@ -169,24 +169,26 @@
 
     <div class="phase-menu-grid">
         {{-- MENU 1: DASHBOARD --}}
-        <a href="{{ route('mentor.dashboard') }}" class="phase-item">
+        {{-- FIX: Tambahkan parameter event ID --}}
+        <a href="{{ route('mentor.dashboard', $event->id) }}" class="phase-item">
             <i class='bx bx-check-square phase-icon'></i>
             <span class="phase-title">Approvals</span>
             <small class="d-block text-muted" style="font-size: 10px;">Cek Tugas</small>
         </a>
 
         {{-- MENU 2: TEAMS --}}
-        <a href="{{ route('mentor.groups.index') }}" class="phase-item">
+        {{-- FIX: Tambahkan parameter event ID --}}
+        <a href="{{ route('mentor.groups.index', $event->id) }}" class="phase-item">
             <i class='bx bx-group phase-icon'></i>
             <span class="phase-title">My Teams</span>
             <small class="d-block text-muted" style="font-size: 10px;">Monitor Kelompok</small>
         </a>
 
-        {{-- MENU 3: HISTORY --}}
-        <a href="{{ route('mentor.history') }}" class="phase-item">
-            <i class='bx bx-time-five phase-icon'></i>
-            <span class="phase-title">History</span>
-            <small class="d-block text-muted" style="font-size: 10px;">Riwayat</small>
+        {{-- MENU 3: VOTE (Sebelumnya History) --}}
+        <a href="#" class="phase-item">
+            <i class='bx bx-poll phase-icon'></i>
+            <span class="phase-title">Vote</span>
+            <small class="d-block text-muted" style="font-size: 10px;">Voting (Soon)</small>
         </a>
     </div>
 
@@ -196,6 +198,7 @@
                 <small class="text-muted d-block">Login sebagai</small>
                 <span class="fw-bold text-dark">{{ Auth::user()->name }}</span>
             </div>
+            {{-- Tombol Logout di Menu Overlay --}}
             <button onclick="confirmLogoutNav()" class="btn btn-sm btn-danger rounded-pill px-3">
                 <i class='bx bx-log-out'></i> Logout
             </button>
@@ -209,14 +212,14 @@
     {{-- BAGIAN KIRI --}}
     <div class="nav-section">
         {{-- Home / Review --}}
-        <a href="{{ route('mentor.dashboard') }}"
+        <a href="{{ route('mentor.dashboard', $event->id) }}"
             class="nav-link-item {{ Route::is('mentor.dashboard') ? 'active' : '' }}">
             <i class='bx {{ Route::is('mentor.dashboard') ? 'bxs-home-smile' : 'bx-home-smile' }}'></i>
             <span>Review</span>
         </a>
 
         {{-- Teams --}}
-        <a href="{{ route('mentor.groups.index') }}"
+        <a href="{{ route('mentor.groups.index', $event->id) }}"
             class="nav-link-item {{ Route::is('mentor.groups.*') ? 'active' : '' }}">
             <i class='bx {{ Route::is('mentor.groups.*') ? 'bxs-group' : 'bx-group' }}'></i>
             <span>Teams</span>
@@ -230,17 +233,16 @@
 
     {{-- BAGIAN KANAN --}}
     <div class="nav-section">
-        {{-- History --}}
-        <a href="{{ route('mentor.history') }}"
-            class="nav-link-item {{ Route::is('mentor.history') ? 'active' : '' }}">
-            <i class='bx {{ Route::is('mentor.history') ? 'bxs-time-five' : 'bx-time-five' }}'></i>
-            <span>History</span>
+        {{-- Vote (Ganti History) --}}
+        <a href="#" class="nav-link-item">
+            <i class='bx bx-poll'></i>
+            <span>Vote</span>
         </a>
 
-        {{-- Akun (Trigger Menu or Logout) --}}
-        <a href="javascript:void(0)" onclick="toggleMenu()" class="nav-link-item">
-            <i class='bx bx-user-circle'></i>
-            <span>Akun</span>
+        {{-- Akun (Jadi Tombol Keluar) --}}
+        <a href="javascript:void(0)" onclick="confirmLogoutNav()" class="nav-link-item">
+            <i class='bx bx-log-out-circle text-danger'></i>
+            <span class="text-danger">Keluar</span>
         </a>
     </div>
 
@@ -289,4 +291,5 @@
     }
 </script>
 
+{{-- Form Logout Tersembunyi --}}
 <form id="logout-form-nav-bot" action="{{ route('logout') }}" method="POST" class="d-none">@csrf</form>

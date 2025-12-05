@@ -157,6 +157,10 @@
             <div>
                 <h4 class="fw-bold text-white mb-0">MENTOR PANEL</h4>
                 <p class="text-white opacity-75 small mb-0">Hi, {{ Auth::user()->name }}</p>
+                {{-- Menampilkan Nama Event yang sedang aktif --}}
+                <span class="badge bg-white text-primary mt-1" style="opacity: 0.9; font-size: 0.7rem;">
+                    {{ $event->name }}
+                </span>
             </div>
         </div>
         <i class='bx bx-check-shield position-absolute' style="font-size: 8rem; top: 10px; right: -20px; opacity: 0.1; color: white;"></i>
@@ -250,7 +254,9 @@
                         <button type="button" class="btn-action btn-reject" data-bs-toggle="modal" data-bs-target="#rejectModal{{ $sub->id }}">
                             <i class='bx bx-x-circle fs-5'></i> REJECT
                         </button>
-                        <form action="{{ route('mentor.submission.approve', $sub->id) }}" method="POST" class="w-100">
+
+                        {{-- FIX ROUTE: Tambahkan parameter 'event' => $event->id --}}
+                        <form action="{{ route('mentor.submission.approve', ['event' => $event->id, 'id' => $sub->id]) }}" method="POST" class="w-100">
                             @csrf
                             <button type="submit" class="btn-action btn-approve w-100">
                                 <i class='bx bx-check-circle fs-5'></i> APPROVE
@@ -283,7 +289,9 @@
                             <h5 class="modal-title fw-bold text-dark">Tolak Misi?</h5>
                         </div>
                     </div>
-                    <form action="{{ route('mentor.submission.reject', $sub->id) }}" method="POST">
+
+                    {{-- FIX ROUTE: Tambahkan parameter 'event' => $event->id --}}
+                    <form action="{{ route('mentor.submission.reject', ['event' => $event->id, 'id' => $sub->id]) }}" method="POST">
                         @csrf
                         <div class="modal-body px-4 pt-2 pb-4">
                             <p class="text-muted small text-center mb-3">Berikan alasan agar kelompok bisa memperbaiki.</p>
@@ -300,12 +308,3 @@
     @endforeach
 
 @endsection
-
-@push('scripts')
-<script>
-    // FIX MODAL HP
-    $(document).ready(function() {
-        $('.modal').appendTo("body");
-    });
-</script>
-@endpush
