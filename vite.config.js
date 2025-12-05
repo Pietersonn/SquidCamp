@@ -39,8 +39,11 @@ export default defineConfig({
   server: {
     host: true,
     port: 5173,
+    strictPort: true,
     hmr: {
-      host: '192.168.1.11', // <--- ganti sesuai IP WiFi kamu
+      protocol: 'ws',
+      host: '192.168.1.11', // IP laptop
+      port: 5173,
     },
   },
 
@@ -82,3 +85,4 @@ export default defineConfig({
     }
   }
 });
+

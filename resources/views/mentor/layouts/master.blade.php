@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="light-style layout-menu-fixed" dir="ltr" data-theme="theme-default"
+<html lang="en" class="light-style" dir="ltr" data-theme="theme-default"
   data-assets-path="{{ asset('assets/') }}/" data-template="vertical-menu-template-free">
 
 <head>
@@ -35,6 +35,7 @@
     body {
       background-color: #f4f6f8;
       padding-bottom: 80px; /* Space for Bottom Nav */
+      overflow-x: hidden;   /* Mencegah scroll samping yang tidak diinginkan */
     }
     /* Scrollbar hide for cleaner mobile look */
     ::-webkit-scrollbar { width: 0px; background: transparent; }
@@ -43,16 +44,15 @@
 
 <body>
 
-  <div class="layout-wrapper layout-content-navbar layout-without-menu">
-    <div class="layout-container">
-      <div class="layout-page">
-        <div class="content-wrapper">
-          @yield('content')
-          </div>
-      </div>
-    </div>
-  </div>
+  {{-- [PERBAIKAN UTAMA DI SINI] --}}
+  {{-- Hapus div: layout-wrapper, layout-container, content-wrapper --}}
+  {{-- Ganti dengan tag <main> sederhana agar konten bisa Full Width (Edge-to-Edge) --}}
 
+  <main id="main-content" style="position: relative; min-height: 100vh;">
+      @yield('content')
+  </main>
+
+  {{-- Include Bottom Nav --}}
   @include('mentor.layouts.bottom-nav')
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
