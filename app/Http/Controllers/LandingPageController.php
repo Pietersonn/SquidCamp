@@ -11,7 +11,7 @@ class LandingPageController extends Controller
 {
     public function index()
     {
-        // 1. Cek User Role (Redirect Admin/Mentor ke Dashboard)
+        // 1. Cek User Role (Redirect Admin/Mentor/Investor ke Dashboard masing-masing)
         if (Auth::check()) {
             /** @var \App\Models\User $user */
             $user = Auth::user();
@@ -19,8 +19,9 @@ class LandingPageController extends Controller
             if ($user->role !== 'user') {
                  $dashboardRoute = match ($user->role) {
                     'admin'    => 'admin.dashboard',
-                    'mentor'   => 'mentor.dashboard',
-                    'investor' => 'investor.dashboard',
+                    // PERBAIKAN: Arahkan ke select-event, bukan dashboard langsung
+                    'mentor'   => 'mentor.select-event',
+                    'investor' => 'investor.select-event',
                     default    => 'landing',
                 };
 
@@ -35,7 +36,7 @@ class LandingPageController extends Controller
         $today = Carbon::today()->toDateString();
 
         $events = Event::whereDate('event_date', '>=', $today) // Hanya Hari Ini atau Masa Depan
-                        ->where('is_finished', false)          // [BARU] Sembunyikan yang sudah Finish
+                        ->where('is_finished', false)          // Sembunyikan yang sudah Finish
                         ->orderBy('event_date', 'asc')
                         ->get();
 

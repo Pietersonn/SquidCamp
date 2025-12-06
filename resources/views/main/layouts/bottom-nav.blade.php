@@ -1,14 +1,14 @@
 {{-- FETCH DATA EVENT (Agar bisa diakses global di nav) --}}
 @php
-    // Ambil event aktif untuk pengecekan timer di menu
-    $activeEventNav = \App\Models\Event::where('is_active', true)->first();
-    $cStart = $activeEventNav ? $activeEventNav->challenge_start_time : null;
-    $cEnd   = $activeEventNav ? $activeEventNav->challenge_end_time : null;
+  // Ambil event aktif untuk pengecekan timer di menu
+  $activeEventNav = \App\Models\Event::where('is_active', true)->first();
+  $cStart = $activeEventNav ? $activeEventNav->challenge_start_time : null;
+  $cEnd = $activeEventNav ? $activeEventNav->challenge_end_time : null;
 
-    // Konversi ke Timestamp Javascript (Milliseconds)
-    // Carbon::valueOf() return timestamp in ms
-    $jsStart = $cStart ? $cStart->valueOf() : 0;
-    $jsEnd   = $cEnd ? $cEnd->valueOf() : 0;
+  // Konversi ke Timestamp Javascript (Milliseconds)
+  // Carbon::valueOf() return timestamp in ms
+  $jsStart = $cStart ? $cStart->valueOf() : 0;
+  $jsEnd = $cEnd ? $cEnd->valueOf() : 0;
 @endphp
 
 {{-- 1. BACKDROP GELAP (Muncul saat menu dibuka) --}}
@@ -31,14 +31,14 @@
     </a>
 
     {{-- PHASE 2: CASE (Placeholder) --}}
-<a href="{{ route('main.cases.index') }}" class="phase-item">
+    <a href="{{ route('main.cases.index') }}" class="phase-item">
       <i class='bx bx-briefcase-alt-2 phase-icon'></i>
       <span class="phase-title">Cases</span>
       <small class="d-block text-muted" style="font-size: 10px;">Studi Kasus</small>
     </a>
 
     {{-- PHASE 3: SHOW (Placeholder) --}}
-    <a href="#" class="phase-item">
+    <a href="{{ route('main.investments.index') }}" class="phase-item">
       <i class='bx bx-microphone phase-icon'></i>
       <span class="phase-title">Show</span>
       <small class="d-block text-muted" style="font-size: 10px;">Presentasi</small>
@@ -76,7 +76,7 @@
   <div class="nav-section">
     {{-- Team / Group (Ganti Riwayat jadi Team karena lebih penting) --}}
     <a href="{{ route('main.group.index') }}"
-       class="nav-link-item {{ request()->routeIs('main.group.*') ? 'active' : '' }}">
+      class="nav-link-item {{ request()->routeIs('main.group.*') ? 'active' : '' }}">
       <i class='bx bx-group'></i>
       <span>Tim</span>
     </a>
@@ -94,59 +94,65 @@
   <script>
     // --- Logic Validasi Waktu Challenge (Client Side) ---
     function checkChallengeAccess(e) {
-        // Ambil waktu dari PHP yang sudah di-inject ke Blade
-        const startTime = {{ $jsStart }};
-        const endTime = {{ $jsEnd }};
+      // Ambil waktu dari PHP yang sudah di-inject ke Blade
+      const startTime = {{ $jsStart }};
+      const endTime = {{ $jsEnd }};
 
-        // Waktu sekarang di browser user
-        const now = new Date().getTime();
+      // Waktu sekarang di browser user
+      const now = new Date().getTime();
 
-        // 1. Cek jika jadwal belum di set sama sekali
-        if (startTime === 0 || endTime === 0) {
-            e.preventDefault(); // Batalkan pindah halaman
-            Swal.fire({
-                icon: 'warning',
-                title: 'Belum Tersedia',
-                text: 'Jadwal Challenge belum ditentukan oleh panitia.',
-                confirmButtonColor: '#00a79d',
-                customClass: { popup: 'rounded-4' }
-            });
-            return;
-        }
+      // 1. Cek jika jadwal belum di set sama sekali
+      if (startTime === 0 || endTime === 0) {
+        e.preventDefault(); // Batalkan pindah halaman
+        Swal.fire({
+          icon: 'warning',
+          title: 'Belum Tersedia',
+          text: 'Jadwal Challenge belum ditentukan oleh panitia.',
+          confirmButtonColor: '#00a79d',
+          customClass: {
+            popup: 'rounded-4'
+          }
+        });
+        return;
+      }
 
-        // 2. Cek jika BELUM mulai (Too Early)
-        if (now < startTime) {
-            e.preventDefault(); // Batalkan pindah halaman
+      // 2. Cek jika BELUM mulai (Too Early)
+      if (now < startTime) {
+        e.preventDefault(); // Batalkan pindah halaman
 
-            // Format jam mulai agar user tau kapan harus balik
-            const startDate = new Date(startTime);
-            const hours = String(startDate.getHours()).padStart(2, '0');
-            const minutes = String(startDate.getMinutes()).padStart(2, '0');
+        // Format jam mulai agar user tau kapan harus balik
+        const startDate = new Date(startTime);
+        const hours = String(startDate.getHours()).padStart(2, '0');
+        const minutes = String(startDate.getMinutes()).padStart(2, '0');
 
-            Swal.fire({
-                icon: 'info',
-                title: 'Belum Dibuka',
-                text: `Sabar ya! Challenge baru akan dibuka pukul ${hours}:${minutes}`,
-                confirmButtonColor: '#00a79d',
-                customClass: { popup: 'rounded-4' }
-            });
-            return;
-        }
+        Swal.fire({
+          icon: 'info',
+          title: 'Belum Dibuka',
+          text: `Sabar ya! Challenge baru akan dibuka pukul ${hours}:${minutes}`,
+          confirmButtonColor: '#00a79d',
+          customClass: {
+            popup: 'rounded-4'
+          }
+        });
+        return;
+      }
 
-        // 3. Cek jika SUDAH lewat (Too Late)
-        if (now > endTime) {
-            e.preventDefault(); // Batalkan pindah halaman
-            Swal.fire({
-                icon: 'error',
-                title: 'Ditutup',
-                text: 'Yah, sesi Challenge sudah berakhir.',
-                confirmButtonColor: '#d33',
-                customClass: { popup: 'rounded-4' }
-            });
-            return;
-        }
+      // 3. Cek jika SUDAH lewat (Too Late)
+      if (now > endTime) {
+        e.preventDefault(); // Batalkan pindah halaman
+        Swal.fire({
+          icon: 'error',
+          title: 'Ditutup',
+          text: 'Yah, sesi Challenge sudah berakhir.',
+          confirmButtonColor: '#d33',
+          customClass: {
+            popup: 'rounded-4'
+          }
+        });
+        return;
+      }
 
-        // 4. Jika lolos semua, biarkan default action (pindah halaman) terjadi
+      // 4. Jika lolos semua, biarkan default action (pindah halaman) terjadi
     }
 
     // Logic untuk Buka/Tutup Menu Tengah

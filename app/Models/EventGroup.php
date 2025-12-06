@@ -17,7 +17,13 @@ class EventGroup extends Model
         return $this->belongsTo(Event::class);
     }
 
-    // Relasi ke Anggota Group
+    // Relasi ke Group (Induk)
+    public function group()
+    {
+        return $this->belongsTo(Group::class);
+    }
+
+    // Relasi ke Anggota Group (Peserta)
     public function members()
     {
         return $this->hasMany(GroupMember::class, 'event_group_id');

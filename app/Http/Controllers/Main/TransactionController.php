@@ -156,4 +156,5 @@ class TransactionController extends Controller
 
         return view('main.history.index', compact('transactions', 'group'));
     }
+
 }

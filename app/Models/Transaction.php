@@ -17,17 +17,26 @@ class Transaction extends Model
         'to_id',
         'amount',
         'reason',
-        'description', // Pastikan kolom ini ada di migrasi database kamu, jika tidak hapus baris ini
+        'description',
     ];
 
-    // Relasi Opsional (Biar enak kalau mau dipanggil)
+    // Relasi Investor (User) - PENTING untuk halaman Investment
+    public function fromUser()
+    {
+        return $this->belongsTo(User::class, 'from_id');
+    }
+
+    // Relasi Group (jika transaksi dari kelompok)
     public function fromGroup()
     {
         return $this->belongsTo(Group::class, 'from_id');
     }
 
+    // Relasi Group Penerima
     public function toGroup()
     {
         return $this->belongsTo(Group::class, 'to_id');
     }
+
+    
 }
