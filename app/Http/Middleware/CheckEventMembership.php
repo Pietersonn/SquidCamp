@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Event;
-use App\Models\User; // Import Model User
+use App\Models\User;
 use App\Models\GroupMember;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -23,83 +23,92 @@ class CheckEventMembership
         $user = Auth::user();
         $event = null;
 
-        // 1. Coba ambil Event dari URL (Route Model Binding)
-        // Contoh: /mentor/events/{event}/dashboard
-        $routeEvent = $request->route('event');
+        // --- 1. DETEKSI EVENT CONTEXT ---
 
+        // A. Cek URL (Prioritas Utama)
+        // Contoh: /mentor/events/{id}/dashboard
+        $routeEvent = $request->route('event');
         if ($routeEvent instanceof Event) {
             $event = $routeEvent;
         } elseif (is_string($routeEvent) || is_numeric($routeEvent)) {
             $event = Event::find($routeEvent);
         }
 
-        // 2. Jika tidak ada di URL, ambil dari history membership user terakhir
+        // B. Jika URL kosong, Cek History User (Prioritas Kedua)
         if (!$event && $user) {
-            // Cek apakah user adalah participant (group member)
-            $lastMember = GroupMember::where('user_id', $user->id)->latest()->first();
-            if ($lastMember) {
-                $event = $lastMember->event;
-            }
-            // Jika user adalah Mentor, cek event terakhir yang dia handle (Opsional)
-            elseif ($user->role === 'mentor') {
+            if ($user->role === 'mentor') {
+                // Ambil event terakhir yang dia mentori
                 $event = $user->mentorEvents()->latest()->first();
+            } elseif ($user->role === 'user') {
+                // Ambil event dari keanggotaan tim terakhir
+                // [FIX]: Menggunakan getAuthIdentifier() untuk menghindari error "Undefined property id"
+                $lastMember = GroupMember::where('user_id', $user->getAuthIdentifier())->latest()->first();
+                if ($lastMember) {
+                    $event = $lastMember->event;
+                }
             }
         }
 
-        // 3. Jika masih null, cari Event Aktif (Live) atau Upcoming terdekat
+        // C. Jika masih null, Cek Event Aktif/Upcoming (Prioritas Ketiga - Default System)
         if (!$event) {
-            $event = Event::where('status', 'active')->first(); // Prioritas Live
+            // [FIX]: Menggunakan 'is_active' karena kolom 'status' tidak ada di database
+            $event = Event::where('is_active', true)->first();
 
             if (!$event) {
-                $event = Event::where('status', 'upcoming')
+                // Jika tidak ada yang aktif, cari yang akan datang (upcoming) berdasarkan tanggal
+                // Asumsi ada kolom 'start_date' atau 'event_date'
+                $event = Event::where('start_date', '>=', now())
                               ->orderBy('start_date', 'asc')
                               ->first();
             }
         }
 
-        // Jika tetap tidak ada event di sistem, biarkan request lewat (handle di Controller atau 404 nanti)
+        // Jika Event tetap tidak ditemukan di seluruh sistem, biarkan request lewat (handle 404 nanti)
         if (!$event) {
             return $next($request);
         }
 
-        // Simpan Event ke Request agar bisa diakses controller tanpa query ulang (Opsional)
-        // $request->merge(['current_event' => $event]);
+        // --- 2. VALIDASI BERDASARKAN ROLE (LOGIC CABANG) ---
 
-        // --- KHUSUS MENTOR: VALIDASI AKSES ---
+        // === SKENARIO MENTOR (STRICT) ===
+        // Mentor harus sudah di-assign oleh Admin. Kalau tidak -> ERROR 403.
         if ($user && $user->role === 'mentor') {
-            // Cek apakah mentor terdaftar di event yang sedang diakses
             if (!$user->mentorEvents()->where('event_id', $event->id)->exists()) {
-                // Jika mencoba akses event yang bukan miliknya
-                abort(403, 'Anda tidak memiliki akses sebagai Mentor di Event ini.');
+                abort(403, 'Akses Ditolak: Anda tidak terdaftar sebagai Mentor di Event ini.');
             }
             return $next($request);
         }
 
-        // --- KHUSUS PARTICIPANT: CEK ONBOARDING ---
-        if ($user && $user->role === 'user') { // Asumsi role participant adalah 'user'
-            $hasGroup = GroupMember::where('user_id', $user->id)
+        // === SKENARIO USER / PESERTA (FLEXIBLE / ONBOARDING) ===
+        // User bebas masuk untuk mendaftar.
+        if ($user && $user->role === 'user') {
+            $hasGroup = GroupMember::where('user_id', $user->getAuthIdentifier())
                 ->where('event_id', $event->id)
                 ->exists();
 
-            // SKENARIO A: Belum punya kelompok -> Wajib Onboarding
+            // KASUS A: Belum Punya Tim (User Baru / Belum Join)
             if (!$hasGroup) {
-                // Kecuali sedang di halaman onboarding, join, atau logout, lempar ke onboarding
-                if (!$request->routeIs('main.onboarding.*') &&
-                    !$request->routeIs('main.event.join') &&
-                    !$request->routeIs('logout')) {
-
-                    return redirect()->route('main.onboarding.index');
+                // Izinkan akses ke route onboarding/join agar bisa mendaftar
+                if ($request->routeIs('main.onboarding.*') ||
+                    $request->routeIs('main.event.join') ||
+                    $request->routeIs('logout')) {
+                    return $next($request);
                 }
+
+                // Jika mencoba akses dashboard tapi belum punya tim -> Arahkan ke pendaftaran
+                return redirect()->route('main.onboarding.index');
             }
 
-            // SKENARIO B: Sudah punya kelompok -> Dilarang masuk Onboarding lagi
+            // KASUS B: Sudah Punya Tim
             if ($hasGroup) {
+                // Redirect user yang sudah punya tim jika mencoba masuk ke halaman pendaftaran lagi
                 if ($request->routeIs('main.onboarding.*') || $request->routeIs('main.event.join')) {
                     return redirect()->route('main.dashboard');
                 }
             }
         }
 
+        // Untuk role lain (Admin/Investor), loloskan saja
         return $next($request);
     }
 }

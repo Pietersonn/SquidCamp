@@ -137,9 +137,6 @@
 <div class="container px-3 pb-5" style="margin-top: -30px; position: relative; z-index: 10;">
     @forelse ($transactions as $trx)
         @php
-            // Logic menentukan Masuk/Keluar
-            // Jika 'to_id' adalah grup kita => Uang MASUK
-            // Jika 'from_id' adalah grup kita => Uang KELUAR
 
             $isIncoming = false;
             if ($trx->reason == 'BANK_WITHDRAWAL') {

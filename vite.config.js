@@ -47,27 +47,28 @@ export default defineConfig({
     },
   },
 
-  plugins: [
-    laravel({
-      input: [
-        'resources/css/app.css',
-        'resources/assets/css/demo.css',
-        'resources/js/app.js',
-        ...pageJsFiles,
-        ...vendorJsFiles,
-        ...LibsJsFiles,
-        ...CoreScssFiles,
-        ...LibsScssFiles,
-        ...LibsCssFiles,
-        ...FontsScssFiles,
-        ...FontsJsFiles,
-        ...FontsCssFiles
-      ],
-      refresh: true
-    }),
-    html(),
-    iconsPlugin()
-  ],
+plugins: [
+  laravel({
+    input: [
+      'resources/css/app.css',
+      'resources/assets/css/demo.css',
+      'resources/js/app.js',
+      ...pageJsFiles,
+      ...vendorJsFiles,
+      ...LibsJsFiles,
+      ...CoreScssFiles,
+      ...LibsScssFiles,
+      ...LibsCssFiles,
+      ...FontsScssFiles,
+      ...FontsJsFiles,
+      ...FontsCssFiles
+    ],
+    refresh: true,
+    buildDirectory: 'build'
+  }),
+  html(),
+  iconsPlugin()
+],
 
   resolve: {
     alias: {
@@ -85,4 +86,3 @@ export default defineConfig({
     }
   }
 });
-

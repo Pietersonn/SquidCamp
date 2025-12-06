@@ -83,8 +83,8 @@
 
     {{-- Akun --}}
     <a href="javascript:void(0)" onclick="confirmLogout()" class="nav-link-item">
-      <i class='bx bx-user-circle'></i>
-      <span>Akun</span>
+      <i class='bx bx-exit'></i>
+      <span>Keluar</span>
     </a>
   </div>
 

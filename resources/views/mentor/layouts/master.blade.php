@@ -16,6 +16,7 @@
 
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 
+  {{-- Pastikan semua file ini terdaftar di vite.config.js jika masih error CORS/404 --}}
   @vite([
     'resources/assets/vendor/scss/core.scss',
     'resources/assets/css/demo.css',
@@ -28,25 +29,21 @@
   ])
 
   <link rel="stylesheet" href="{{ asset('assets/css/user/squid-mobile.css') }}">
+  <link rel="stylesheet" href="{{ asset('assets/css/user/navbar.css') }}">
 
   @yield('styles')
 
   <style>
     body {
       background-color: #f4f6f8;
-      padding-bottom: 80px; /* Space for Bottom Nav */
-      overflow-x: hidden;   /* Mencegah scroll samping yang tidak diinginkan */
+      padding-bottom: 80px;
+      overflow-x: hidden;
     }
-    /* Scrollbar hide for cleaner mobile look */
     ::-webkit-scrollbar { width: 0px; background: transparent; }
   </style>
 </head>
 
 <body>
-
-  {{-- [PERBAIKAN UTAMA DI SINI] --}}
-  {{-- Hapus div: layout-wrapper, layout-container, content-wrapper --}}
-  {{-- Ganti dengan tag <main> sederhana agar konten bisa Full Width (Edge-to-Edge) --}}
 
   <main id="main-content" style="position: relative; min-height: 100vh;">
       @yield('content')
@@ -59,40 +56,22 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Cek Flash Message Success
         @if(session('success'))
-            Swal.fire({
-                icon: 'success',
-                title: 'Berhasil!',
-                text: "{{ session('success') }}",
-                confirmButtonColor: '#00a79d',
-                timer: 3000
-            });
+            Swal.fire({ icon: 'success', title: 'Berhasil!', text: "{{ session('success') }}", confirmButtonColor: '#00a79d', timer: 3000 });
         @endif
 
-        // Cek Flash Message Error
         @if(session('error'))
-            Swal.fire({
-                icon: 'error',
-                title: 'Gagal!',
-                text: "{{ session('error') }}",
-                confirmButtonColor: '#d33'
-            });
+            Swal.fire({ icon: 'error', title: 'Gagal!', text: "{{ session('error') }}", confirmButtonColor: '#d33' });
         @endif
 
-        // Cek Validation Errors
         @if($errors->any())
-            Swal.fire({
-                icon: 'warning',
-                title: 'Perhatian',
-                html: '<ul style="text-align:left;">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>',
-                confirmButtonColor: '#00a79d'
-            });
+            Swal.fire({ icon: 'warning', title: 'Perhatian', html: '<ul style="text-align:left;">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>', confirmButtonColor: '#00a79d' });
         @endif
     });
   </script>
 
-  @yield('scripts')
+  {{-- PERBAIKAN: Ganti yield menjadi stack --}}
+  @stack('scripts')
 
 </body>
 </html>
