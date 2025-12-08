@@ -33,7 +33,7 @@ class RegisterController extends Controller
 
         Auth::login($user);
 
-        return redirect(route('main.dashboard'))
+        return redirect()->route('landing')
             ->with('success', 'Akun berhasil dibuat! Selamat datang.');
     }
 }

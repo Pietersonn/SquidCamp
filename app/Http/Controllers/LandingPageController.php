@@ -35,8 +35,8 @@ class LandingPageController extends Controller
         // Ambil tanggal hari ini
         $today = Carbon::today()->toDateString();
 
-        $events = Event::whereDate('event_date', '>=', $today) // Hanya Hari Ini atau Masa Depan
-                        ->where('is_finished', false)          // Sembunyikan yang sudah Finish
+        $events = Event::whereDate('event_date', '>=', $today) 
+                        ->where('is_finished', false)
                         ->orderBy('event_date', 'asc')
                         ->get();
 

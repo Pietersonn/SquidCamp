@@ -30,7 +30,6 @@ class AppServiceProvider extends ServiceProvider
 
   public function boot(): void
     {
-        // [FIX] Paksa HTTPS jika di Production atau ngrok/cloudflare
         if($this->app->environment('production') || str_contains(request()->url(), 'trycloudflare.com')) {
             URL::forceScheme('https');
         }

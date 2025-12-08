@@ -124,11 +124,6 @@
         @else
             {{-- Tampilan Jika User SUDAH Login --}}
             <div class="mb-3">
-                 <div class="avatar avatar-lg mx-auto mb-2">
-                    <img src="{{ Auth::user()->avatar ? Auth::user()->avatar : asset('assets/img/avatars/1.png') }}"
-                         class="rounded-circle border border-2 border-white shadow-sm" width="60" height="60"
-                         style="object-fit: cover;" alt="Avatar">
-                </div>
                 <h5 class="fw-bold text-dark mb-0">Hai, {{ Auth::user()->name }}!</h5>
             </div>
 
