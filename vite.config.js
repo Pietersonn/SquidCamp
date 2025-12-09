@@ -37,38 +37,38 @@ const FontsCssFiles = GetFilesArray('resources/assets/vendor/fonts/**/!(_)*.css'
 
 export default defineConfig({
   server: {
-    host: true,
+    host: '127.0.0.1',
     port: 5173,
     strictPort: true,
     hmr: {
       protocol: 'ws',
-      host: '192.168.1.11', // IP laptop
-      port: 5173,
-    },
+      host: '127.0.0.1',
+      port: 5173
+    }
   },
 
-plugins: [
-  laravel({
-    input: [
-      'resources/css/app.css',
-      'resources/assets/css/demo.css',
-      'resources/js/app.js',
-      ...pageJsFiles,
-      ...vendorJsFiles,
-      ...LibsJsFiles,
-      ...CoreScssFiles,
-      ...LibsScssFiles,
-      ...LibsCssFiles,
-      ...FontsScssFiles,
-      ...FontsJsFiles,
-      ...FontsCssFiles
-    ],
-    refresh: true,
-    buildDirectory: 'build'
-  }),
-  html(),
-  iconsPlugin()
-],
+  plugins: [
+    laravel({
+      input: [
+        'resources/css/app.css',
+        'resources/assets/css/demo.css',
+        'resources/js/app.js',
+        ...pageJsFiles,
+        ...vendorJsFiles,
+        ...LibsJsFiles,
+        ...CoreScssFiles,
+        ...LibsScssFiles,
+        ...LibsCssFiles,
+        ...FontsScssFiles,
+        ...FontsJsFiles,
+        ...FontsCssFiles
+      ],
+      refresh: true,
+      buildDirectory: 'build'
+    }),
+    html(),
+    iconsPlugin()
+  ],
 
   resolve: {
     alias: {

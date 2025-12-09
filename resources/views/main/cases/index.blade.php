@@ -72,7 +72,7 @@
     {{-- HEADER --}}
     <div class="case-header">
         <h2 class="fw-bold mb-0" style="color: #3e2723;">SQUID CASE</h2>
-        <p class="opacity-75 small mb-0 fw-bold">Pusat Misi & Data Intelijen</p>
+        <p class="opacity-75 small mb-0 fw-bold">Selesaikan case untuk dapat menuju ke Squid Show</p>
         <i class='bx bx-hive header-icon' style="top: -20px; left: -20px; transform: rotate(-15deg);"></i>
         <i class='bx bx-data header-icon' style="bottom: 10px; right: -20px; font-size: 6rem; transform: rotate(15deg);"></i>
     </div>

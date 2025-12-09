@@ -99,7 +99,7 @@
             <img src="{{ asset('assets/img/logo/logo-squidcamp.png') }}" alt="Logo" width="50">
         </div>
         <h3 class="fw-bold text-white mb-1">SquidCamp</h3>
-        <p class="text-white opacity-80 small mb-0">Platform Kompetisi Coding & Logika</p>
+        <p class="text-white opacity-80 small mb-0">Youth Entrepreneurship Training</p>
     </div>
 
     {{-- 2. FLOATING CARD (LOGIKA LOGIN/USER) --}}

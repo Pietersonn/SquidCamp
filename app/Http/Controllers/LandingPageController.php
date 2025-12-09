@@ -19,7 +19,6 @@ class LandingPageController extends Controller
             if ($user->role !== 'user') {
                  $dashboardRoute = match ($user->role) {
                     'admin'    => 'admin.dashboard',
-                    // PERBAIKAN: Arahkan ke select-event, bukan dashboard langsung
                     'mentor'   => 'mentor.select-event',
                     'investor' => 'investor.select-event',
                     default    => 'landing',
@@ -35,7 +34,7 @@ class LandingPageController extends Controller
         // Ambil tanggal hari ini
         $today = Carbon::today()->toDateString();
 
-        $events = Event::whereDate('event_date', '>=', $today) 
+        $events = Event::whereDate('event_date', '>=', $today)
                         ->where('is_finished', false)
                         ->orderBy('event_date', 'asc')
                         ->get();

@@ -1,6 +1,6 @@
 @extends('main.layouts.mobileMaster')
 
-@section('title', 'Investment Radar')
+@section('title', 'Squid Show')
 
 @section('styles')
 <style>
@@ -141,8 +141,8 @@
 
     {{-- 1. HEADER MERAH --}}
     <div class="invest-header">
-        <h2 class="fw-bold mb-0 text-white">INVESTOR RADAR</h2>
-        <p class="text-white opacity-75 small mb-0 fw-bold">Pantau dana masuk dari para Investor.</p>
+        <h2 class="fw-bold mb-0 text-white">SquidShow</h2>
+        <p class="text-white opacity-75 small mb-0 fw-bold">Sampaikan ide kamu untuk dapat dana dari investor</p>
 
         {{-- Background Icons --}}
         <i class='bx bx-radar text-white position-absolute' style="font-size: 8rem; top: -10px; left: -20px; opacity: 0.15; transform: rotate(-15deg);"></i>
@@ -167,7 +167,7 @@
             </h5>
 
             <p class="motivation-text">
-                "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Teruslah berjuang sampai akhir!"
+                "Squidfighter berikan penampilan terbaik kalian untuk mendapatkan squidollars dari investor!"
             </p>
         </div>
     </div>

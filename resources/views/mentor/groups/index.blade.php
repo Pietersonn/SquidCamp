@@ -84,9 +84,9 @@
                         {{-- Nama Group (Hitam Murni) --}}
                         <h6 class="fw-bold mb-0" style="color: #222;">{{ $group->name }}</h6>
 
-                        {{-- Uang SQ$ (Abu-abu Gelap Murni) --}}
+                        {{-- Uang $ (Abu-abu Gelap Murni) --}}
                         <small class="fw-bold text-value-dark" style="font-size: 0.8rem;">
-                            SQ$ {{ number_format($group->squid_dollar) }}
+                            $ {{ number_format($group->squid_dollar) }}
                         </small>
                     </div>
                     <div class="ms-auto">

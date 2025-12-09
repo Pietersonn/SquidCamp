@@ -317,7 +317,7 @@
     <div class="d-flex flex-column">
       {{-- Label --}}
       <span class="d-block text-muted small fw-bold mb-1" style="font-size: 0.65rem; letter-spacing: 1px; text-transform:uppercase;">
-        SQUID BANK (TABUNGAN)
+        SQUID BANK
       </span>
 
       {{-- [PERBAIKAN] WARNA JADI HIJAU/TEAL (text-squid) --}}
@@ -328,7 +328,7 @@
       {{-- [PERBAIKAN] CASH ADALAH squid_dollar --}}
       <div class="mt-1">
         <span class="badge bg-label-success rounded-pill" style="font-size: 0.7rem;">
-            <i class='bx bx-wallet me-1'></i>Cash: ${{ number_format($group->squid_dollar ?? 0, 0, ',', '.') }}
+            <i class='bx bx-wallet me-1'></i>Squid Dollar: ${{ number_format($group->squid_dollar ?? 0, 0, ',', '.') }}
         </span>
       </div>
     </div>
@@ -465,7 +465,7 @@
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content border-0 shadow-lg" style="border-radius: 25px;">
         <div class="modal-header border-0 pb-0">
-          <h5 class="modal-title fw-bold text-dark">Kirim ke Kelompok Lain</h5>
+          <h5 class="modal-title fw-bold text-dark">Transfer</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body pt-4">
@@ -485,7 +485,7 @@
               </select>
             </div>
             <div class="mb-4">
-              <label class="form-label small fw-bold text-muted">Nominal (SQ$)</label>
+              <label class="form-label small fw-bold text-muted">Nominal ($)</label>
               <div class="input-group input-group-lg bg-light rounded-3">
                 <span class="input-group-text border-0 bg-transparent text-primary fw-bold">$</span>
                 {{-- MAX: BANK BALANCE --}}
@@ -519,14 +519,14 @@
           <div class="alert alert-warning d-flex align-items-center" role="alert" style="font-size: 0.8rem;">
             <i class='bx bx-info-circle me-2 fs-5'></i>
             <div>
-              Uang akan dipindahkan dari <strong>Squid Bank</strong> ke <strong>Dompet Cash</strong>.
+              Saldo akan ditukarkan <strong>menjadi Squid Dollar</strong>.
             </div>
           </div>
 
           <form action="{{ route('main.transaction.withdrawFromBank') }}" method="POST">
             @csrf
             <div class="mb-4">
-              <label class="form-label small fw-bold text-muted">Jumlah Penarikan (SQ$)</label>
+              <label class="form-label small fw-bold text-muted">Jumlah Penarikan ($)</label>
               <div class="input-group input-group-lg bg-light rounded-3">
                 <span class="input-group-text border-0 bg-transparent text-squid fw-bold">$</span>
                 {{-- MAX: BANK BALANCE --}}

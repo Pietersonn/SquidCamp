@@ -303,7 +303,7 @@
                                     <div class="upload-box" id="uploadBox{{ $submission->id }}">
                                         <i class='bx bxs-cloud-upload fs-1 text-squid mb-2' id="uploadIcon{{ $submission->id }}"></i>
                                         <h6 class="fw-bold text-dark mb-0" id="uploadText{{ $submission->id }}">Tap untuk Upload</h6>
-                                        <small class="text-muted" id="uploadDesc{{ $submission->id }}">PDF, DOC, ZIP, JPG, PNG</small>
+                                        <small class="text-muted" id="uploadDesc{{ $submission->id }}">PDF, JPG, PNG</small>
                                         <input type="file" name="file" class="upload-input"
                                                accept=".pdf,.doc,.docx,.zip,.jpg,.jpeg,.png"
                                                onchange="previewFile(this, {{ $submission->id }})">

@@ -164,7 +164,7 @@
                                 }
                             @endphp
                             <span class="price-badge {{ $priceClass }}">
-                                SQ$ {{ number_format($challenge->price, 0, ',', '.') }}
+                                $ {{ number_format($challenge->price, 0, ',', '.') }}
                             </span>
                         </td>
 

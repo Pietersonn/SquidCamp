@@ -125,7 +125,7 @@ class MentorDashboardController extends Controller
             ]);
         });
 
-        return back()->with('success', 'Approved! Saldo Bank bertambah & tercatat di history.');
+        return back()->with('success', 'Approved!');
     }
 
     public function reject(Request $request, Event $event, $id)
